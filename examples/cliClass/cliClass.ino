@@ -5,7 +5,6 @@
   #define EXAMPLE4          // Tests simple cli.exec() using RESPONSE buffer
 //#define EXAMPLE5          // tests interact() with RESPONSE with local table
 
-//#include <cpuClass.h>     
 #include "cliClass.h"       // includes cpuClass.h and ESP8266WiFi.h
 
 extern COMMAND table[];     // forward reference
@@ -177,8 +176,6 @@ void loop()
     yield();
 }
 #endif
-
-
 
 // -------------- dispatch table and functions -----------------
 

@@ -17,7 +17,6 @@
   Released under the MIT license. Please check LICENSE.txt for more
   information.  All text above must be included in any redistribution. 
 */
-#include <cpuClass.h>
 #include "oledClass.h"
 
 //#define P(A,vargs) Serial.printf(A,vargs); Serial.printf("\r\n");
@@ -27,13 +26,17 @@ void e( const char *p )
     PF("---%s\r\n", (*p<' ')? ++p: p );     // skip control character
 }   // print display
 
+CPU cpu;
+OLED oled;
+
 void setup()
 {
   cpu.init();
  
   oled.init( OLED130 );                      // Initialze SSD1306 OLED dsp
   
-  oled.setBrightness( atoi( cpu.prompt("Enter brightness: ") ) );
+  char s[64];
+  oled.setBrightness( atoi( cpu.prompt("Enter brightness: ", s, 64) ) );
   
   for( int br=0; br<255; br+=32 )
   {
@@ -49,7 +52,7 @@ void setup()
 
   for(;;)
   {
-    strcpy( temp+1, cpu.prompt("Enter string: ") );
+    cpu.prompt("Enter string: ", temp+1, 19);       // get string in temp+1
     oled.clearDisplay();
 
       temp[0] = '\a'; e(oled.dsp( 1, 0, temp ));
