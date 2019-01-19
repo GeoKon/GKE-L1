@@ -58,7 +58,16 @@ enum select_t               // used in saveParms(), getParms(), fetchParms()
     USER_PARMS = 4,
      ALL_PARMS = 7        
 };
-    
+
+struct wifi_t				// universal structure for wifi parameters
+{
+	char ssid[16];
+	char pwd [16];
+	char stIP[16];
+	uint16_t port;
+};
+#define WIFI_SIZE 3*16+2   // sizeof( wifi_t )
+	
 class EEP
 {
 private:
@@ -79,16 +88,8 @@ public:
     #define HEAD_SIZE 8            // sizeof( head_t ) causes an error in eepTables()
     #define USER_SIZE head.userN
 
-    struct wifi_t
-    {
-        
-        char ssid[16];
-        char pwd [16];
-        char stIP[16];
-        uint16_t port;
-
-    } wifi;
-    #define WIFI_SIZE 3*16+2   // sizeof( wifi_t )
+    struct wifi_t wifi;
+    
 
     EEP();
     void registerUserParms( void *p, int N, char *format );
