@@ -1,25 +1,16 @@
-//#define EXAMPLE0          // Tests simple gets() and prompt
-//#define EXAMPLE1          // Tests simple gets() and tokenizer
-//#define EXAMPLE2          // Tests heap()
-//#define EXAMPLE3          // Tests simple cli.exec() using printf()
-  #define EXAMPLE4          // Tests simple cli.exec() using RESPONSE buffer
-//#define EXAMPLE5          // tests interact() with RESPONSE with local table
+//  #define EXAMPLE0          // Tests simple gets() and prompt
+//  #define EXAMPLE1          // Minimal setup() interaction example
+    #define EXAMPLE2          // non-blocking interaction example
+//  #define EXAMPLE3          // heap test
 
 #include "cliClass.h"       // includes cpuClass.h and ESP8266WiFi.h
 
-extern COMMAND table[];     // forward reference
-
 // --------------------- allocation of classes ------------------------------------
-
-CPU cpu;
-CLI cli;
-Buf rbuf( 400 );            // CLI Response buffer. Used by interact() and execTables()
-                            // Use RESPONSE rbuf.add
-
+    CPU cpu;
+    CLI cli;
 // ---------------------------------- EXAMPLE0 ------------------------------------
 
 #ifdef EXAMPLE0         // Tests simple gets() and prompt
-#define RESPONSE PF     // not used
 
 void setup(void) 
 {
@@ -31,14 +22,149 @@ void loop()
 {
   if( cli.ready() )
   {
-    PF("[%s]\r\n", cli.gets() );
+    PF("Entered 1: [%s]\r\n", cli.gets() );
+    
+    Buf bf;
+    bf.set( cli.gets() );    // copy to buffer
+    PF("Entered 2: [%s]\r\n", bf.pntr );
+
+    Buf bx( cli.gets() );    // copy to buffer
+    PF("Entered 3: [%s]\r\n", bx.pntr );
+    
     cli.prompt();
   }
 }
 #endif
+
 // ---------------------------------- EXAMPLE1 ------------------------------------
 
-#ifdef EXAMPLE1         // Tests simple gets() and tokenizer
+#ifdef EXAMPLE1         // Tests simple gets() and prompt
+
+EXE exe;        
+#define DCL_PF Buf &bf          // not really used
+#define RESPONSE Serial.printf
+
+void fnc1( int n, char **arg, DCL_PF )
+{
+  RESPONSE("In function FUNC1\r\n" );
+}
+void fnc2( int n, char **arg, DCL_PF  )
+{
+  RESPONSE("In function FUNC2\r\n" );
+  for( int i=0; i<n; i++ )
+    RESPONSE("arg[%d] = %s\r\n", i, arg[i] );
+}
+void help( int n, char **arg, DCL_PF )
+{
+    exe.printHelp( (n<=1) ? (char *)"" : arg[1] );
+}
+CMDTABLE t1[]
+{
+  {"h",    "[select] help",                         help },
+  {"fnc1", "Calls function-1",                      fnc1 },
+  {"fnc2", "arg1 arg2 ... argN. Call function-2",   fnc2 },
+  {NULL, NULL, NULL}
+};
+
+void setup(void) 
+{
+    cpu.init();
+   
+    exe.registerTable( t1 );
+    exe.printTables( "See Table" );  
+    
+    for(;;)
+    {
+        char *p = cpu.prompt("Enter command: " );   // p point to local buffer in cpu class
+        exe.dispatch( p );
+    }
+}
+void loop()
+{
+    ;
+}
+#endif
+
+// ---------------------------------- EXAMPLE2 ------------------------------------
+
+#ifdef EXAMPLE2         // Tests simple gets() and prompt
+
+EXE exe;
+        
+#define DCL_PF Buf &bf
+#define RESPONSE bf.add // you can also define RESPONSE Serial.printf
+
+void fnc1( int n, char **arg, DCL_PF )
+{
+  RESPONSE("In function FUNC1\r\n" );
+}
+void fnc2( int n, char **arg, DCL_PF  )
+{
+  RESPONSE("In function FUNC2\r\n" );
+  for( int i=0; i<n; i++ )
+    RESPONSE("arg[%d] = %s\r\n", i, arg[i] );
+}
+void fnc3( int n, char **arg, DCL_PF )
+{
+  RESPONSE("In function FUNC3\r\n");
+}
+void fnc4( int n, char **arg, DCL_PF  )
+{
+  RESPONSE("In function FUNC4\r\n" );
+  for( int i=0; i<n; i++ )
+    RESPONSE("arg[%d] = %s\r\n", i, arg[i] );
+}
+void help( int n, char **arg, DCL_PF )
+{
+    exe.printHelp( (n<=1) ? (char *)"" : arg[1] );
+}
+void bhelp( int n, char **arg, DCL_PF )
+{
+    exe.getHelp( (n<=1) ? (char *)"" : arg[1], bf );
+}
+CMDTABLE t1[]
+{
+  {"h",    "[select] help",                         help },
+  {"b",    "[select] bhelp",                        bhelp },
+  {"fnc1", "Calls function-1",                      fnc1 },
+  {"fnc2", "arg1 arg2 ... argN. Call function-2",   fnc2 },
+  {NULL, NULL, NULL}
+};
+CMDTABLE t2[]
+{
+  {"fnc3", "void function3()", fnc3 },
+  {"fnc4", "void function4()", fnc4 },
+  {NULL, NULL, NULL}
+};
+
+void setup(void) 
+{
+    cpu.init();
+    
+    exe.registerTable( t1 );
+    exe.registerTable( t2 );
+    exe.printTables( "See all tables" );  // instead of PF, you can optionally specify a Buf
+
+    cli.init( ECHO_ON, "cmd:" );
+    PR("Main Loop");
+}
+void loop()
+{
+    if( cli.ready() )
+    {
+        char *cmd = cli.gets();         // cmd points to the heap allocated by CLI
+        PF("Command entered: %s\r\n", cmd );
+
+        Buf response(200);
+        exe.dispatch( cmd, response );         
+        response.print();        
+    }
+}
+#endif
+
+// ---------------------------------- EXAMPLE1 ------------------------------------
+
+#ifdef EXAMPLE11         // Tests simple gets() and tokenizer
 #define RESPONSE PF     // not used
 void setup(void) 
 {
@@ -66,9 +192,9 @@ void loop()
   }
 }
 #endif
-// ---------------------------------- EXAMPLE2 ------------------------------------
+// ---------------------------------- EXAMPLE3 ------------------------------------
 
-#ifdef EXAMPLE2                 // Tests heap()
+#ifdef EXAMPLE3                 // Tests heap()
 #define RESPONSE PF             // not used
 
 String sub1()
@@ -106,110 +232,63 @@ void loop()
     ;
 }
 #endif
-// ---------------------------------- EXAMPLE3 ------------------------------------
 
-#ifdef EXAMPLE3         // Tests simple CONSOLE CLI using printf()
-#define RESPONSE PF     // response by all CLI handlers
+// ------------- attempt to compute stack size -----------------------------
 
-void setup(void) 
-{
-    cpu.init();
-    cli.init( ECHO_ON, "cmd: " );    // by default, ECO is OFF
-
-    cli.prompt();
-    for(;;)
-    {
-        if( cli.ready() )
-        {
-            int ok = cli.exec( table );           // executed OK?
-            if( !ok )
-                PF("Cmnd \"%s\" not found\r\n", *cli.args() );
-            cli.prompt();
-         }
-    }
-}
-void loop()
-{
-    yield();
-}
-#endif
-// ---------------------------------- EXAMPLE4 ------------------------------------
-
-#ifdef EXAMPLE4                 // Tests simple cli.exec() using RESPONSE buffer
-#define RESPONSE rbuf.add       // not used
-
-void setup(void) 
-{
-  cpu.init();
-  PF("Tests exec()\r\n");
-  cli.init( ECHO_ON, "cmd: " );    // by default, ECO is OFF
-  cli.prompt();
-}
-void loop()
-{
-  if( cli.ready() )
-  {
-    PF("Received [%s]", cli.gets() );
-    rbuf.init();
-    bool e = cli.exec( &table[0] );
-    if( !e )
-        RESPONSE("Cmnd %s not found\r\n", *cli.args() );
-    rbuf.print();
-    cli.prompt();
-  }
-}
-#endif
-
-// ---------------------------------- EXAMPLE5 ------------------------------------
-
-#ifdef EXAMPLE5             // tests interact() with RESPONSE
-#define RESPONSE rbuf.add   // as allocated in cliClass
-
-void setup(void) 
-{
-  cpu.init();
-  cli.init( ECHO_ON, "cmd: " );    // by default, ECO is OFF
-  interact( &table[0] );
-}
-void loop()
-{
-    yield();
-}
-#endif
-
-// -------------- dispatch table and functions -----------------
-
-static void help( int n, char **arg)
-{
-    if( n>1 )
-        cli.printTable( &table[0], arg[1] );
-    else
-        cli.printTable( &table[0], "" );
-}
-static void func1( int n, char **arg)
-{
-  RESPONSE("In function FUNC1\r\n" );
-}
-static void func2( int n, char **arg )
-{
-  RESPONSE("In function FUNC2\r\n" );
-  for( int i=0; i<n; i++ )
-    RESPONSE("arg[%d] = %s\r\n", i, arg[i] );
-}
-class Func
-{
-  public:
-  static void fun3( int n, char **x) {RESPONSE("Func3\r\n");}
-  void fun4() {RESPONSE("Func4\r\n");}
-};
-Func ft;
-
-COMMAND table[]
-{
-  {"h",     "[sel] help", help  },
-  {"func1", "void function1()", func1 },
-  {"func2", "void function2()", func2 },
-  {"func3", "static class function", ft.fun3 },
-  {"fnc4", "class wrapped in lambda", [](int n, char **x){ft.fun4();}  },
-  {NULL, NULL, NULL}
-};
+//static int i=0;         // counter or recursive iterations
+//static int imax = 100;  // max loop counter
+//static uint32_t smax;   // base of the stack
+//static uint32_t smin;   // depth of the stack
+//
+//void fillStack()
+//{
+//    uint32_t code = 0x12345678;    // pattern
+//    
+//    if( i==0 )
+//        smax = (uint32_t) &code;
+//    if( i>=imax )
+//    {
+//        smin = (uint32_t) &code;
+//        return;
+//    }
+//    i++;
+//    fillStack();
+//} 
+//void showStack()
+//{
+//    PF("Min=%d, Max=%d\r\n", smin, smax );
+//    byte *p;
+//    uint32_t *q;
+//    p = (byte *)smin;
+//    q = (uint32_t *)smin;
+//    PR("Per Byte");
+//    for( int i=0; i<100; i++ )
+//    {
+//        PF("%d Mem[%d] = %02X\r\n", i, p, *p );
+//        p++;
+//    }
+//    PR("Per U32");
+//    for( int i=0; i<100; i++ )
+//    {
+//        PF("%d Mem[%d] = %08X\r\n", i, q, *q );
+//        q += 8;
+//    }    
+//}
+//#define STACK() printStack( __FILE__, __LINE__ )
+//extern void printStack( char *f, int d );
+//void printStack( char *f, int d )
+//{
+//    uint32_t *q;
+//    int i;
+//    q = (uint32_t *)smin;
+//    for( i=0; i<100; i++ )
+//    {
+//        if( *q != 0x12345678 )
+//            break;
+//        q += 8;
+//    }    
+//    char *fn = rindex( f, '\\' );   // find the last \
+//    if( fn== NULL )
+//        fn = f;
+//    PF("%s[%d]: Stack depth is %dx32 bytes\r\n", fn, d, i );
+//}
