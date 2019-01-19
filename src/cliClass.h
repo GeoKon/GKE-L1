@@ -5,18 +5,19 @@
 /*
  * Example 1:
  *  in setup:       cli.init()
- *                  cli.start()
+ *                  cli.prompt()
  *  in loop:        if( cli.ready() )
  *                      cli.gets();
- *                      cli.start();
+ *                      cli.prompt();
  */
+
 typedef struct
 {
   char *cmd;
   char *help;
-  void (*func)(int, char **);
+  void (*func)(int, char **, Buf & );
 
-} COMMAND;
+} CMDTABLE;
 
 enum echo_t
 {
@@ -24,55 +25,62 @@ enum echo_t
   ECHO_OFF=false
 };
 
-#define MAX_TOK 10
 class CLI
 {
-private:
-    char *buf;      // pointer to user buffer and optional token allocation
-    int  nbuf;      // size of the user buffer(minus token allocation)
-    int nextchar;   // next character to get a character
-    
-    char **tok;     // pointer to token buffer
-    int ntok;       // max size of token pointers. Last token is always NULL;
-    int atok;       // actual tokens
-    
-    bool echo;      // flag to echo input characters or not
-    const char *sprompt;  // pointer to const char* for prompt
-    bool sflush;    // true to flush input before next ready(), or false to use type ahead
-
-    char *bufx;     // pointer to end of received buffer with copy of previous input
-    bool bfok;      // true, if bufx is valid
-    
 public:
-    CLI( int nchar=80, int ntokens=10 );
+    CLI( int nchar=80 );
     ~CLI();
     void init( echo_t echo1, const char *prompt=NULL, bool flush1=false );
     void prompt();
     
     bool ready();		// true is one or more characters are waiting in the serial queue
     char *gets();		// returns a pointer to a string received after \r detected
-    
-    int tokenize();
-    char **args();     // get pointer to 1st argument
-    int nargs();       // get number of tokens
+	
+private:
+    char *buf;      // pointer to user buffer and optional token allocation
+    int  nbuf;      // size of the user buffer(minus token allocation)
+    int nextchar;   // next character to get a character
+   
+    bool echo;      // flag to echo input characters or not
+    const char *sprompt;  // pointer to const char* for prompt
+    bool sflush;    // true to flush input before next ready(), or false to use type ahead
 
-    bool dispatch( COMMAND *t );
-    bool exec( COMMAND *t );                    // tokenize and dispatch. 
-    bool exec( COMMAND *t, const char *s );	    // copies s to internal buffer, then dispatches
-
-// Generic functions -- not requiring the Private variables
-
-    int tokenize( char *userbuf, char *mytok[], int mxtok  );
-    void printTable( COMMAND *t, char *select="" );
-    void printArgs ( char *prompt1, int n, char *a[] );
+    char *bufx;     // pointer to end of received buffer with copy of previous input
+    bool bfok;      // true, if bufx is valid
 };
-// ---------------- exported symbols ----------------
 
-extern void interact ( COMMAND *ToT[] );
-extern void interact( COMMAND *t );
-extern void printToT( COMMAND *ToT[] );
-extern void execTables( COMMAND *ToT[], const char *s );
+#define MAX_TENTRIES 10				// max number of command tables
+#define MAX_TOKENS 10				// max number of tokens in a command line
+#define MAX_INPCMD 80				// max size of a command line
 
-extern CLI cli;
-extern Buf rbuf;
+#define HELP(A) [](int, char **, Buf&){A.help("");}
+
+class EXE
+{
+public:
+    EXE();									
+	void registerTable( CMDTABLE *t );
+	void printTables( char *prompt = "" );
+	void getTables  ( char *prompt, Buf &temp );
+	void printHelp( char *mask = "" );
+	void getHelp( char *mask, Buf &temp );
+	
+	void dispatch( char *s );				// must use printf()
+	void dispatch( Buf &cmd );				// must use printf()
+	
+	void dispatch( char *s,  Buf &result );
+	void dispatch( Buf &cmd, Buf &result );
+
+private:
+	int ntables;					// number of table entries
+	CMDTABLE *table[MAX_TENTRIES];	// pointers to tables
+	
+    int ntokens;       				// number of tokens in a command line
+	char *token[MAX_TOKENS];  		// pointers to tokens. All of them in the buffer below
+	    
+	char temp[ MAX_INPCMD ];		// temporary storage of user command line
+	
+	int tokenize( char *userbuf, char *mytok[], int mxtok  );	// generic
+};
+
 #endif
