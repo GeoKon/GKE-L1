@@ -36,7 +36,7 @@ void setup()
   oled.init( OLED130 );                      // Initialze SSD1306 OLED dsp
   
   char s[64];
-  oled.setBrightness( atoi( cpu.prompt("Enter brightness: ", s, 64) ) );
+  oled.setBrightness( atoi( cpu.prompt("Enter brightness: ") ));
   
   for( int br=0; br<255; br+=32 )
   {
@@ -52,7 +52,7 @@ void setup()
 
   for(;;)
   {
-    cpu.prompt("Enter string: ", temp+1, 19);       // get string in temp+1
+    strncpy( temp+1, cpu.prompt("Enter string: "),19);       // get string in temp+1
     oled.clearDisplay();
 
       temp[0] = '\a'; e(oled.dsp( 1, 0, temp ));

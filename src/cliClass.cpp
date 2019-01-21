@@ -114,18 +114,18 @@
 				PF( "%s\t%s\r\n", row->cmd, row->help );
 		}
 	}
-	void EXE::getTables( char *prompt, Buf &bf )
-	{
-		bf.init();
-		if( *prompt )
-			bf.add( "%s\r\n", prompt );
-		for( int i=0; i<ntables; i++)
-		{
-			CMDTABLE *row = table[ i ];
-			for( int j=0; row->cmd ; j++, row++ )
-				bf.add( "%s\t%s\r\n", row->cmd, row->help );
-		}
-	}
+	// void EXE::getTables( char *prompt, Buf &bf )
+	// {
+		// bf.init();
+		// if( *prompt )
+			// bf.add( "%s\r\n", prompt );
+		// for( int i=0; i<ntables; i++)
+		// {
+			// CMDTABLE *row = table[ i ];
+			// for( int j=0; row->cmd ; j++, row++ )
+				// bf.add( "%s\t%s\r\n", row->cmd, row->help );
+		// }
+	// }
 
 	// -------------------------------------------------------------------
 	// Generic tokenizer, Does not depend on privates of this class
@@ -142,20 +142,41 @@
 	  // PF("DONE\r\n");
 	  return nt;
 	}
+	void EXE::respond( const char *fmt, ... )
+	{
+		// va_list va;
+		// va_start(va, fmt);
+		// char buf[vsnprintf(NULL, 0, fmt, va) + 1];
+		// vsprintf(buf, fmt, va);
+		// va_end(va);
+		
+		va_list va;
+		va_start(va, fmt);
+		if( cmdbf==NULL ) 
+			vprintf( fmt, va);		// print directly
+		else
+		{							// buffer directly
+			char *p = cmdbf->pntr;
+			int N = strlen(p);
+			vsnprintf( p+N, cmdbf->maxsiz-N-1, fmt, va );
+			*(cmdbf->pntr + cmdbf->maxsiz-1)=0;			// append EOS
+		}	
+		va_end(va);
+	}
 	void EXE::dispatch( Buf &bf )  
 	{
-		return dispatch( bf.pntr );
+		dispatch( bf, NULL );
 	}
 	void EXE::dispatch( char *s )  
 	{
-		Buf bf(0);		// dummy buffer
-		return dispatch( s, bf );
+		Buf bf(0);					// dummy buffer
+		dispatch( s, NULL );
 	}
-	void EXE::dispatch( Buf &bf, Buf &result )  
+	void EXE::dispatch( Buf &bf, Buf *result )  
 	{
 		return dispatch( bf.pntr, result );
 	}
-	void EXE::dispatch( char *s, Buf &bf )    
+	void EXE::dispatch( char *s, Buf *result )    
 	{
 		strncpy( temp, s, MAX_INPCMD-1 );			
 		temp[ MAX_INPCMD-1 ] = 0;
@@ -169,39 +190,40 @@
 		if( (ntokens==0) || (*cmnd == 0) )			// empty command
 			return;
 		
+		cmdbf = result;						// this is a pointer to user buffer
+			
 		for( int i=0; i<ntables; i++)	// each table, one at a time
 		{
 			for( CMDTABLE *row=table[i]; row->cmd ; row++ )
 			{
 			  if( strcmp( row->cmd, cmnd ) == 0 )
 			  {
-				bf.init();
-				(*row->func)( ntokens, token, bf );
+				// if( result )
+					// result->init();
+				(*row->func)( ntokens, token );
 				return;
 			  }
 			}
 		}
-		bf.set( "[%s] not found\r\n", cmnd );
+		respond( "[%s] not found\r\n", cmnd );
 	}
 	
-	void EXE::printHelp( char *mask )
+	void EXE::help( int n, char *arg[] )
 	{
+		char *mask;
+	    mask = (n<=1) ? (char *)"" : arg[1];
+		// if( cmdbf )
+				// cmdbf->init();
 		for( int i=0; i<ntables; i++)
 		{
 			CMDTABLE *row = table[ i ];
+			//PF("Mask is %s, table %d\r\n", mask, i );
+			
 			for( int j=0; row->cmd ; j++, row++ )
 				if( (strncmp( row->cmd, mask, strlen(mask)) == 0) || (*mask==0) )
-					PF( "%s\t%s\r\n", row->cmd, row->help );
+				{	//PF( "{%s\t%s}\r\n", row->cmd, row->help );
+					respond( "%s\t%s \r\n", row->cmd, row->help );
+				}
+				
 		}
 	}
-	void EXE::getHelp( char *mask, Buf &bf )
-	{
-		for( int i=0; i<ntables; i++)
-		{
-			CMDTABLE *row = table[ i ];
-			for( int j=0; row->cmd ; j++, row++ )
-				if( (strncmp( row->cmd, mask, strlen(mask)) == 0) || (*mask==0) )
-					bf.add( "%s\t%s\r\n", row->cmd, row->help );
-		}
-	}
-	

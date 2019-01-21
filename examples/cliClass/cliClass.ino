@@ -61,8 +61,8 @@ void help( int n, char **arg, DCL_PF )
 CMDTABLE t1[]
 {
   {"h",    "[select] help",                         help },
-  {"fnc1", "Calls function-1",                      fnc1 },
-  {"fnc2", "arg1 arg2 ... argN. Call function-2",   fnc2 },
+  {"func1", "Calls function-1",                      fnc1 },
+  {"func2", "arg1 arg2 ... argN. Call function-2",   fnc2 },
   {NULL, NULL, NULL}
 };
 
@@ -91,49 +91,44 @@ void loop()
 
 EXE exe;
         
-#define DCL_PF Buf &bf
-#define RESPONSE bf.add // you can also define RESPONSE Serial.printf
+#define RESPONSE(...) exe.respond(__VA_ARGS__)
 
-void fnc1( int n, char **arg, DCL_PF )
+void fnc1( int n, char **arg )
 {
   RESPONSE("In function FUNC1\r\n" );
 }
-void fnc2( int n, char **arg, DCL_PF  )
+void fnc2( int n, char **arg  )
 {
   RESPONSE("In function FUNC2\r\n" );
   for( int i=0; i<n; i++ )
     RESPONSE("arg[%d] = %s\r\n", i, arg[i] );
 }
-void fnc3( int n, char **arg, DCL_PF )
+void fnc3( int n, char **arg )
 {
   RESPONSE("In function FUNC3\r\n");
 }
-void fnc4( int n, char **arg, DCL_PF  )
+void fnc4( int n, char **arg  )
 {
   RESPONSE("In function FUNC4\r\n" );
   for( int i=0; i<n; i++ )
     RESPONSE("arg[%d] = %s\r\n", i, arg[i] );
 }
-void help( int n, char **arg, DCL_PF )
+void help( int n, char **arg )
 {
-    exe.printHelp( (n<=1) ? (char *)"" : arg[1] );
+    exe.help( n, arg );
 }
-void bhelp( int n, char **arg, DCL_PF )
-{
-    exe.getHelp( (n<=1) ? (char *)"" : arg[1], bf );
-}
+
 CMDTABLE t1[]
 {
   {"h",    "[select] help",                         help },
-  {"b",    "[select] bhelp",                        bhelp },
-  {"fnc1", "Calls function-1",                      fnc1 },
-  {"fnc2", "arg1 arg2 ... argN. Call function-2",   fnc2 },
+  {"func1", "Calls function-1",                      fnc1 },
+  {"func2", "arg1 arg2 ... argN. Call function-2",   fnc2 },
   {NULL, NULL, NULL}
 };
 CMDTABLE t2[]
 {
-  {"fnc3", "void function3()", fnc3 },
-  {"fnc4", "void function4()", fnc4 },
+  {"fn3", "void function3()", fnc3 },
+  {"fn4", "void function4()", fnc4 },
   {NULL, NULL, NULL}
 };
 
@@ -147,17 +142,25 @@ void setup(void)
 
     cli.init( ECHO_ON, "cmd:" );
     PR("Main Loop");
+    cli.prompt();
 }
 void loop()
 {
     if( cli.ready() )
     {
-        char *cmd = cli.gets();         // cmd points to the heap allocated by CLI
+        char *cmd = cli.gets();             // cmd points to the heap allocated by CLI
         PF("Command entered: %s\r\n", cmd );
 
-        Buf response(200);
-        exe.dispatch( cmd, response );         
-        response.print();        
+        exe.dispatch( cmd );                // using Serial.printf(); unbuffered version
+
+        PF("--- Buffered version ---\r\n");
+        
+        Buf response(200);                  // allocate a response buffer
+        exe.dispatch( cmd, &response );     // use the buffered version
+        response.print();                   // display the buffer
+
+        PF("Maxsiz=%d, used:%d\r\n", response.maxsiz, response.length() );
+        cli.prompt();
     }
 }
 #endif

@@ -15,7 +15,7 @@ typedef struct
 {
   char *cmd;
   char *help;
-  void (*func)(int, char **, Buf & );
+  void (*func)(int, char ** );
 
 } CMDTABLE;
 
@@ -53,7 +53,8 @@ private:
 #define MAX_TOKENS 10				// max number of tokens in a command line
 #define MAX_INPCMD 80				// max size of a command line
 
-#define HELP(A) [](int, char **, Buf&){A.help("");}
+// This macro is to be used in the main table. Declares printTables() as a help function
+#define HELP(A) [](int n, char *arg[]){A->help(n,arg);}
 
 class EXE
 {
@@ -61,17 +62,19 @@ public:
     EXE();									
 	void registerTable( CMDTABLE *t );
 	void printTables( char *prompt = "" );
-	void getTables  ( char *prompt, Buf &temp );
-	void printHelp( char *mask = "" );
-	void getHelp( char *mask, Buf &temp );
-	
+	void help( int n, char *arg[] );
+		
 	void dispatch( char *s );				// must use printf()
 	void dispatch( Buf &cmd );				// must use printf()
 	
-	void dispatch( char *s,  Buf &result );
-	void dispatch( Buf &cmd, Buf &result );
+	void dispatch( char *s,  Buf *result );
+	void dispatch( Buf &cmd, Buf *result );
 
+	void respond( const char *format, ... );	// to be used in dispatch handlers
+	
 private:
+	Buf *cmdbf;						// set by dispatch. Used by handlers. NULL if Serial.printf()
+	
 	int ntables;					// number of table entries
 	CMDTABLE *table[MAX_TENTRIES];	// pointers to tables
 	
