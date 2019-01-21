@@ -10,7 +10,8 @@
 // ----------------------- Buf Class ------------------------------------------
 #define BUFDEF_SIZE 64
 #define BUFSTK_SIZE 16
-class Buf
+#define Buf BUF						// Buf is to be deprecated
+class BUF
 {
   private:
 	char defbuf[ BUFSTK_SIZE ];	// buffer used to avoid malloc

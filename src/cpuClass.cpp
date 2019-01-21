@@ -230,12 +230,13 @@
     {
         if( pntr )
         {
-            va_list args;
-            va_start (args, format );
-            char *p = pntr + strlen( pntr );    // where to store new data
-            int avail = maxsiz - 1 - strlen( pntr );
-            vsnprintf(p, avail, format, args);
-            va_end( args );
+			va_list args;
+			va_start (args, format );
+			char *p = pntr + strlen( pntr );    		// where to store new data
+            int avail = maxsiz - 1 - strlen( pntr );	// left over space
+			vsnprintf(p, avail, format, args);
+			*(pntr+maxsiz-1) = 0;						// EOS
+			va_end( args );
         }
         return pntr;
     }
