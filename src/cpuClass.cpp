@@ -126,7 +126,7 @@
 	}
 
 // ---------------- Buf Class Definition --------------------------------------
-	void Buf::alloc( int siz )		// helper routine to allocate buffer
+	void BUF::alloc( int siz )		// helper routine to allocate buffer
 	{
 		if( siz <= BUFSTK_SIZE )
 		{
@@ -143,12 +143,12 @@
 		}	
 		//PF("Allocated %d\r\n", maxsiz );
 	}
-	Buf::Buf( int siz )
+	BUF::Buf( int siz )
     {
 		alloc( siz );
 		*pntr = 0;
     }
-	Buf::Buf( char *p, int siz )
+	BUF::Buf( char *p, int siz )
     {
         int N = strlen( p )+1;
 		if( siz < N )
@@ -156,11 +156,11 @@
 		alloc( siz );
 		strcpy( pntr, p );
     }
-    Buf::~Buf()
+    BUF::~Buf()
     {
         free();
     }
-	void Buf::free()
+	void BUF::free()
 	{
 		if( pntr && (maxsiz > BUFSTK_SIZE) )
         {
@@ -170,12 +170,12 @@
         maxsiz = 0;
 		//PF("Deallocated\r\n" );
 	}
-	void Buf::init()
+	void BUF::init()
 	{
 		if( pntr )
 			*pntr = 0;
 	}
-    Buf & Buf::operator = ( char *s ) 
+    Buf & BUF::operator = ( char *s ) 
     {
         if( pntr )
         {
@@ -184,7 +184,7 @@
 		}    
         return *this;
     }
-    Buf & Buf::operator = ( const Buf &s ) 
+    Buf & BUF::operator = ( const Buf &s ) 
     {
         if( this == &s )
             return *this;
@@ -195,7 +195,7 @@
 		}  
         return *this;
     }
-    Buf & Buf::operator += ( char *s ) 
+    Buf & BUF::operator += ( char *s ) 
     {
         if( pntr )
         {
@@ -204,7 +204,7 @@
 		}
         return *this;
     }
-    char *Buf::set( const char *format, ... )
+    char *BUF::set( const char *format, ... )
     {
         if( pntr )
         {
@@ -217,7 +217,7 @@
         }
         return pntr;
     }
-    char *Buf::set( const Buf &s )
+    char *BUF::set( const Buf &s )
     {
         if( pntr )      
         {
@@ -226,7 +226,7 @@
 		}    
         return pntr;
     }
-    char *Buf::add( const char *format, ... )
+    char *BUF::add( const char *format, ... )
     {
         if( pntr )
         {
@@ -240,7 +240,7 @@
         }
         return pntr;
     }
-	char *Buf::quotes()
+	char *BUF::quotes()
     {
         if( pntr )
         {
@@ -252,7 +252,7 @@
         }
         return pntr;
     }
-    char *Buf::add( Buf &s )
+    char *BUF::add( Buf &s )
     {
         if( pntr )
         {
@@ -261,27 +261,27 @@
         }
         return pntr;
     }
-    void Buf::print( const char *prompt )
+    void BUF::print( const char *prompt )
     {
         PN( prompt );   // print prompt
         if( pntr )      // ...then string
             PN( pntr );
         PR("");         // ...then CRLF  
     }
-    void Buf::print()
+    void BUF::print()
     {
         if( pntr )
             PN( pntr );
     }
-    char * Buf::operator ! ()    // pointer to buffer
+    char * BUF::operator ! ()    // pointer to buffer
     {
         return pntr;
     }
-    char *Buf::c_str()
+    char *BUF::c_str()
     {
         return pntr;
     }
-    int Buf::length()
+    int BUF::length()
     {
         return strlen( pntr );
     }
