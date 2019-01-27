@@ -21,13 +21,13 @@ class BUF
     char *pntr;
     int maxsiz;					// max size of available buffer
 	
-    Buf( int siz=BUFDEF_SIZE );
-	Buf( char *s, int siz=BUFDEF_SIZE );
-    ~Buf();
+    BUF( int siz=BUFDEF_SIZE );
+	BUF( char *s, int siz=BUFDEF_SIZE );
+    ~BUF();
 	
-    Buf & operator = ( char *s );
-    Buf & operator = ( const Buf &s );
-    Buf & operator += ( char *s );
+    BUF & operator = ( char *s );
+    BUF & operator = ( const Buf &s );
+    BUF & operator += ( char *s );
     
 	void init();
 	void free();

@@ -143,12 +143,12 @@
 		}	
 		//PF("Allocated %d\r\n", maxsiz );
 	}
-	BUF::Buf( int siz )
+	BUF::BUF( int siz )
     {
 		alloc( siz );
 		*pntr = 0;
     }
-	BUF::Buf( char *p, int siz )
+	BUF::BUF( char *p, int siz )
     {
         int N = strlen( p )+1;
 		if( siz < N )
@@ -156,7 +156,7 @@
 		alloc( siz );
 		strcpy( pntr, p );
     }
-    BUF::~Buf()
+    BUF::~BUF()
     {
         free();
     }
