@@ -9,6 +9,7 @@ can be found in the `\src` subdirectory and the associated `.md` files.
 |------          |:---------:      |--------------- |---------                                            |
 |cliClass.cpp    |  CLI, EXE       | cliClass.ino   | Asynchronous serial I/O for CLI. Dispatch class to CMDTABLE handlers | 
 |cpuClass.cpp    |  CPU, BUF, COUT | cpuClass.ino   | Baseline NodeMCU i/o functions. Efficient String class replacement by Buf. Console Out pipe |  
+|ds18Class.cpp   |  DS18, FLT      | ds18Class.ino  | Dallas Temp OneWire replacement library optimized for size. Requires OneWire.cpp, .h |
 |eepClass.cpp    |  EEP            | eepClass.ino   | Access to EEPROM for WiFi and User parameters |
 |oledClass.cpp   |  OLED           | oledClass.ino  | Connects to 128x32, 128x64 (0.91" and 0.96") OLEDs |
 |timeClass.cpp   |  TIME ModuloX   | timeClass.ino  | Time base (free running). ModuloTic, ModuleSec, ModuleHrs utility classes |
