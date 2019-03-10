@@ -64,16 +64,21 @@ public:
 	void printTables( char *prompt = "" );
 	void help( int n, char *arg[] );
 		
-	void dispatch( char *s );				// must use printf()
-	void dispatch( Buf &cmd );				// must use printf()
+	void dispatchConsole( char *s  );					// must use printf()
+	void dispatchConsole( BUF &cmd );					// must use printf()
 	
-	void dispatch( char *s,  Buf *result );
-	void dispatch( Buf &cmd, Buf *result );
+	void dispatchBuf( char *s,  BUF &result );
+	void dispatchBuf( BUF &cmd, BUF &result );
 
-	void respond( const char *format, ... );	// to be used in dispatch handlers
+	void respond( const char *format, ... );			// if cmdbf is NULL, uses printf()
+														// else, stores into this buffer.
+	void respondStr( const char *s );			
+	
+	// to be used in dispatch handlers
 	
 private:
-	Buf *cmdbf;						// set by dispatch. Used by handlers. NULL if Serial.printf()
+	char *respbf;					// set by dispatch. Used by handlers. NULL if Serial.printf()
+	int   respsz;					// if zero, user printf
 	
 	int ntables;					// number of table entries
 	CMDTABLE *table[MAX_TENTRIES];	// pointers to tables

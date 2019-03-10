@@ -142,6 +142,10 @@
 	  // PF("DONE\r\n");
 	  return nt;
 	}
+	
+	// if cmdbf is NULL, it uses printf()
+	// else, appends to buffer.
+	
 	void EXE::respond( const char *fmt, ... )
 	{
 		// va_list va;
@@ -152,32 +156,76 @@
 		
 		va_list va;
 		va_start(va, fmt);
-		if( cmdbf==NULL ) 
-			vprintf( fmt, va);		// print directly
+		
+		if( (respsz==0) || (respbf == NULL) ) 
+		{							
+			vprintf( fmt, va );		// print directly. DOES NOT WORK IF MORE THAN ONE LINE
+		}
 		else
 		{							// buffer directly
-			char *p = cmdbf->pntr;
-			int N = strlen(p);
-			vsnprintf( p+N, cmdbf->maxsiz-N-1, fmt, va );
-			*(cmdbf->pntr + cmdbf->maxsiz-1)=0;			// append EOS
+			char *p = respbf;
+			int N = strlen(p);		// current size of the buffer
+			
+			vsnprintf( p+N, respsz-N-1, fmt, va );	// append string
+			
+			*(respbf + respsz-1)=0;	// append EOS
 		}	
 		va_end(va);
 	}
-	void EXE::dispatch( Buf &bf )  
+	void EXE::respondStr( const char *s )
 	{
-		dispatch( bf, NULL );
+		if( (respsz==0) || (respbf == NULL) ) 
+			PN( s );
+		else
+		{							// buffer directly
+			char *p = respbf;
+			int N = strlen(p);		// current size of the buffer
+			
+			strncat( p, s, respsz-N-1 );	// append string
+			
+			*(respbf + respsz-1)=0;	// append EOS
+		}	
 	}
-	void EXE::dispatch( char *s )  
+	void EXE::dispatchConsole( BUF &bf )  
 	{
-		Buf bf(0);					// dummy buffer
-		dispatch( s, NULL );
+		dispatchConsole( bf.c_str() );
 	}
-	void EXE::dispatch( Buf &bf, Buf *result )  
+	void EXE::dispatchConsole( char *s )  
 	{
-		return dispatch( bf.pntr, result );
+		respbf = NULL;									// set bf and size to zero
+		respsz = 0;										// to force printf() in response
+		
+		strncpy( temp, s, MAX_INPCMD-1 );			
+		temp[ MAX_INPCMD-1 ] = 0;
+		ntokens = tokenize( temp, token, MAX_TOKENS );	// inserts \0's into s
+		
+		char *cmnd = token[0];
+		if( (ntokens==0) || (*cmnd == 0) )				// empty command
+			return;
+		
+		for( int i=0; i<ntables; i++)					// each table, one at a time
+		{
+			for( CMDTABLE *row=table[i]; row->cmd ; row++ )
+			{
+			  if( strcmp( row->cmd, cmnd ) == 0 )
+			  {
+				(*row->func)( ntokens, token );			// these functions use response()
+				return;
+			  }
+			}
+		}
+		respond( "[%s] not found\r\n", cmnd );
 	}
-	void EXE::dispatch( char *s, Buf *result )    
+	void EXE::dispatchBuf( BUF &bf, BUF &result )  
 	{
+		return dispatchBuf( bf.c_str(), result );
+	}
+	void EXE::dispatchBuf( char *s, BUF &result )    
+	{
+		respbf = result.pntr;
+		respsz = result.maxsiz;
+		*respbf = 0;			// insert EOS since we start from the beginning
+		
 		strncpy( temp, s, MAX_INPCMD-1 );			
 		temp[ MAX_INPCMD-1 ] = 0;
 		ntokens = tokenize( temp, token, MAX_TOKENS );	// inserts \0's into s
@@ -190,16 +238,12 @@
 		if( (ntokens==0) || (*cmnd == 0) )			// empty command
 			return;
 		
-		cmdbf = result;						// this is a pointer to user buffer
-			
 		for( int i=0; i<ntables; i++)	// each table, one at a time
 		{
 			for( CMDTABLE *row=table[i]; row->cmd ; row++ )
 			{
 			  if( strcmp( row->cmd, cmnd ) == 0 )
 			  {
-				// if( result )
-					// result->init();
 				(*row->func)( ntokens, token );
 				return;
 			  }
