@@ -1,8 +1,15 @@
-#define TEST 3
 /*
  * 1= test eeprom (no parms)
  * 2= test used parms
  * 3= test eeprom with user parms
+ *
+ * Use eepGlobal.ino (in Lib2) as a model to write main setup()
+ */
+#define TEST 3
+/*
+ * Sketch uses 283960 bytes (27%) of program storage space. Maximum is 1044464 bytes.
+ * Global variables use 30332 bytes (37%) of dynamic memory, leaving 51588 bytes for local variables. Maximum is 81920 bytes.
+ * Uploading 288112 bytes
  */
 #include "eepClass.h"   
 #include "serClass.h" 
@@ -15,8 +22,7 @@
 
 #if TEST > 1
     
-    SER ser;
-    
+    SER ser;    
     class Global
     {
     public:    
