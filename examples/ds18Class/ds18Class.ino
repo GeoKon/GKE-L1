@@ -1,6 +1,6 @@
 //#define TEST1       // simplest ONE sensor
 //#define TEST2       // explicit error check
-  #define TEST3       // 2-sensors
+#define TEST3       // 2-sensors
 //#define TEST4       // simulation toggle
 
 #include <cpuClass.h>
@@ -12,7 +12,7 @@
 CPU cpu;
 ModuloTic tic(2);       // one tic per second
     
-OneWire  ds(4);         // on pin D2 of the NodeMCU
+OneWire  ds(4);         // on pin D2 of the NodeMCU. Use 10k Pull-up!
 DS18 temp( &ds );       // associate DS18B20 class with OneWire
 
 #ifdef TEST1

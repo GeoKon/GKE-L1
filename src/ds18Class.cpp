@@ -55,7 +55,7 @@ int DS18::search( bool debug )
 
 void DS18::start( int devid )  
 {
-    if( (state !=0) || (found <= 1) )             // do nothing if state is not zero
+    if( (state !=0) || (found <= 0) )             // do nothing if state is not zero
         return;
             
     idx = devid;
