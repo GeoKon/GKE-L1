@@ -1,13 +1,7 @@
 #pragma once
 #include <macros.h>
 
-#include <cpuClass.h>   // needed for snf()
-
-/* OLD WAY
- * use mgn.start() to start saving into buffer
- * use mgn.bufpnt() to get the buffer pointer
- * use mgn.print() to print the buffer
- */
+#include <cpuClass.h>   // needed for snf() and BUF definitions
 
 // Convenient macro to save into the BUF buf if initialized
 #define BSAVE( format, ...) if(bpnt) bpnt->add( format, ##__VA_ARGS__ )
@@ -16,26 +10,16 @@ class MGN
 {
     int idx;
     BUF *bpnt;
-    char channel[20];		// used to store optional channel
+    char channel[20];		// used to store optional Meguno channel
 	
 public:    
-    // MGN( int allocsize )
-    // { 
-        // idx = 0;
-        // bpnt = new BUF( allocsize );
-        // bpnt->init();
-		// channel[0]=0;
-    // }
 	MGN() 
     { 
         idx = 0;
         bpnt = NULL;
 		channel[0]=0;
     }
-    // ~MGN()
-    // {
-        // delete bpnt;
-    // }
+	// provide a BUF sufficient to accumulate all responses back to caller
     void init( BUF *bp, const char *chan = "" )
     {
 		bpnt = bp;			// set the pointer for all functions
@@ -47,8 +31,6 @@ public:
 		else
 			channel[0] = 0;
     }
-
-
     // ------------------- TABLES -------------------------------------
     void tableSet( const char *cname, const char *value, const char *descr="" )
     {
@@ -132,11 +114,11 @@ public:
     {
         BSAVE("{UI%s|SET|%s}\r\n", channel,cnameprop); 
     }
-    // ------------------ Buffer Management -----------------------------
+    // -------------------- Buffer Management -----------------------------
      
     void clear()
     {
-	bpnt->init();
+		bpnt->init();
     }
     char *getBuf()
     {
@@ -147,9 +129,6 @@ public:
     	bpnt->print();
     }
 };
-
-
-
 
 #ifdef TEST_FOR_MGNCLASS
 #define V mg.sv

@@ -1,7 +1,8 @@
 // macros.h
 #pragma once
 
-    #define PN(A)   			Serial.print(A)			// to be deprecated
+    //#define PN(A)   			Serial.print(A)			// to be deprecated
+	
 	#define PR(A)   			Serial.print(A)
     #define PRN(A)   			Serial.println(A)
 	

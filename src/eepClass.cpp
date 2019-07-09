@@ -130,12 +130,12 @@
 	{
 		if( *prompt )
             PF( "%s\r\n", prompt );
-		PN( getHeadString() );
+		PR( getHeadString() );
 	}
 	void EEP::printWiFiParms( char *prompt )
 	{
 		if( *prompt )
             PF( "%s\r\n", prompt );
-		PN( getWiFiString() );
+		PR( getWiFiString() );
 	}
 

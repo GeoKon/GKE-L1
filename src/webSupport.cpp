@@ -43,8 +43,8 @@
 			WiFi.hostname("GKE_Station");	// set the wifi hostname
 	  
 			PF( "\r\nConnected to %s. Hostname is %s. ", WiFi.SSID().c_str(), WiFi.hostname().c_str() );
-			PN( "IP Address " );
-			PR( WiFi.localIP() );
+			PR( "IP Address " );
+			PRN( WiFi.localIP() );
 			return true;
 		}
 		PF( "." );
@@ -150,13 +150,13 @@
 	  cpu->heapUpdate();
 	  if( gtrace & T_REQUEST )
 	  {
-		PR( "*** request: "+ server->uri() );
+		PRN( "*** request: "+ server->uri() );
 	  }
 	  if( gtrace & T_ARGS )
 	  {
 		int N=server->args();
-		PN("=== arg: ");
-		PR( N );
+		PR("=== arg: ");
+		PRN( N );
 		
 		if( N>0 )
 		{
@@ -170,7 +170,7 @@
 	  cpu->heapUpdate();
 	  if( gtrace & T_JSON )
 	  {
-		PN( "--- " ); PR( json );
+		PR( "--- " ); PRN( json );
 	  }
 	}
 
