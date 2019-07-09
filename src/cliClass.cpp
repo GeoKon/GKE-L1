@@ -1,4 +1,4 @@
-#include "cliClass.h"		// this already includes cpuClass.h
+#include "cliClass.hpp"		// this already includes cpuClass.h
 
 // ------------------------------ CLI CLASS ------------------------------------------
 
@@ -7,7 +7,6 @@
 		buf  = new char [ nchar ];
 		nbuf = nchar;
 		bufx = buf+nbuf/2-1;
-
 		init( ECHO_OFF, "", false );
 	}
 	CLI::~CLI()
@@ -46,27 +45,29 @@
 				bfok = false;
 
 			  nextchar = 0;
-			  if( echo ) PN( "\r\n" );
+			  if( echo ) PR( "\r\n" );
 			  return true;
 			}
-			else if( c==0x1B )  // flush characters already entered
+			else if( c=='\n' )						// ignore newlines received
+				;
+			else if( c==0x1B )  					// flush characters already entered
 			{
 				for(; nextchar>0; nextchar-- )
-					PN( "\x08 \x08" );    
+					PR( "\x08 \x08" );    
 				buf[ 0 ] = 0;
 			}
-			else if( (c==('A'-0x40)) && bfok )  // append with old buffer
+			else if( (c==('A'-0x40)) && bfok )  	// append with old buffer
 			{
 				strcpy( buf+nextchar, bufx );
-				PN( buf+nextchar );
+				PR( buf+nextchar );
 				nextchar = strlen( buf );
 			}
-			else if( c=='H'-0x40 )
+			else if( c=='H'-0x40 )					// backspace
 			{
 			  if( nextchar>0 )
 			  {
 				nextchar--;
-				if( echo ) PN( "\x08 \x08" );
+				if( echo ) PR( "\x08 \x08" );
 			  }
 			}
 			else
@@ -74,7 +75,7 @@
 			  buf[ nextchar++ ] = c;
 			  if( nextchar > nbuf-2 )
 				nextchar = nbuf-2;
-			  if( echo ) PN( (char)c );
+			  if( echo ) PR( (char)c );
 			}
 		}
 	}             
@@ -85,7 +86,7 @@
 	void CLI::prompt()  // optional if prompt is not needed
 	{
 		if( *sprompt )
-			PN( sprompt );
+			PR( sprompt );
 		if( sflush )
 			while( Serial.available() )
 				Serial.read();
@@ -175,7 +176,7 @@
 	void EXE::respondStr( const char *s )
 	{
 		if( (respsz==0) || (respbf == NULL) ) 
-			PN( s );
+			PR( s );
 		else
 		{							// buffer directly
 			char *p = respbf;
@@ -186,10 +187,10 @@
 			*(respbf + respsz-1)=0;	// append EOS
 		}	
 	}
-	void EXE::dispatchConsole( BUF &bf )  
-	{
-		dispatchConsole( bf.c_str() );
-	}
+	// void EXE::dispatchConsole( BUF &bf )  
+	// {
+		// dispatchConsole( bf.c_str() );
+	// }
 	void EXE::dispatchConsole( char *s )  
 	{
 		respbf = NULL;									// set bf and size to zero
@@ -209,21 +210,23 @@
 			{
 			  if( strcmp( row->cmd, cmnd ) == 0 )
 			  {
+				token[0]=NULL;							// flip token 0 to NULL
 				(*row->func)( ntokens, token );			// these functions use response()
+				token[0]=cmnd;
 				return;
 			  }
 			}
 		}
 		respond( "[%s] not found\r\n", cmnd );
 	}
-	void EXE::dispatchBuf( BUF &bf, BUF &result )  
-	{
-		return dispatchBuf( bf.c_str(), result );
-	}
+	// void EXE::dispatchBuf( BUF &bf, BUF &result )  
+	// {
+		// return dispatchBuf( bf.c_str(), result );
+	// }
 	void EXE::dispatchBuf( char *s, BUF &result )    
 	{
-		respbf = result.pntr;
-		respsz = result.maxsiz;
+		respbf = result.c_str();
+		respsz = result.size();
 		*respbf = 0;			// insert EOS since we start from the beginning
 		
 		strncpy( temp, s, MAX_INPCMD-1 );			
@@ -244,7 +247,10 @@
 			{
 			  if( strcmp( row->cmd, cmnd ) == 0 )
 			  {
+				char *savetok0 = token[0];			// save token 0
+				token[0] = (char *) (&result);		// replace token 0 with BUF
 				(*row->func)( ntokens, token );
+				token[0] = cmnd; //savetok0;				// restore token 0
 				return;
 			  }
 			}
@@ -265,9 +271,18 @@
 			
 			for( int j=0; row->cmd ; j++, row++ )
 				if( (strncmp( row->cmd, mask, strlen(mask)) == 0) || (*mask==0) )
-				{	//PF( "{%s\t%s}\r\n", row->cmd, row->help );
-					respond( "%s\t%s \r\n", row->cmd, row->help );
+				{	//PF( "{\t%s\t%s}\r\n", row->cmd, row->help );
+					respond( "\t%s\t%s \r\n", row->cmd, row->help );
 				}
 				
 		}
 	}
+
+void errBufferedOnly()
+{
+    PRN("ERROR: This command can only be used in buffered mode!");
+}
+void errMissingArgs()
+{
+    PRN("ERROR: Missing arguments!");
+}

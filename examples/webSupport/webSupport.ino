@@ -1,3 +1,4 @@
+#include "cpuClass.h"
 #include "webSupport.h"
 
 // ----------------------- allocation of base classes -------------------------

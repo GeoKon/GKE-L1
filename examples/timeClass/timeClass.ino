@@ -5,6 +5,7 @@
 //#define TEST5
 
 #include <Ticker.h>
+#include "cpuClass.h"
 #include "timeClass.h"
 
 CPU cpu;

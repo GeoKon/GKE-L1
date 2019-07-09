@@ -20,7 +20,7 @@
 
 // GKE: NO MODIFICATIONS TO THIS FILE
 
-#include "oledClass.h"
+#include "oledClass.hpp"
 
 //#ifndef oled_allocated
 //	OLEDClass oled;

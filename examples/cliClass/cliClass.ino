@@ -1,13 +1,139 @@
-//  #define EXAMPLE0          // Tests simple gets() and prompt
-//  #define EXAMPLE1          // Minimal setup() interaction example
-    #define EXAMPLE2          // non-blocking interaction example
-//  #define EXAMPLE3          // heap test
+/*
+ * 0 Tests simple gets() and prompt
+ *   
+ *   THE FOLLOWING NEED TO BE RETESTED!
+ * 1 Minimal setup() interaction example
+ * 2 non-blocking interaction example
+ * 3 heap test
 
+Sketch uses 282160 bytes (27%) of program storage space. Maximum is 1044464 bytes.
+Global variables use 29948 bytes (36%) of dynamic memory, leaving 51972 bytes for local variables. Maximum is 81920 bytes.
+Uploading 286304 bytes 
+*/
+
+#define TEST 0
+ 
 #include "cliClass.h"       // includes cpuClass.h and ESP8266WiFi.h
 
 // --------------------- allocation of classes ------------------------------------
     CPU cpu;
     CLI cli;
+
+// ---------------------------------- TEST 1 ------------------------------------
+
+#if TEST==0            // Tests simple gets() and prompt
+
+EXE exe;
+
+// For TEST1, CLI handlers can either use printf() or exe.respond()
+// For TEST2, CLI must use exe.respond()
+
+#define RESPONSE(...) exe.respond(__VA_ARGS__)
+
+void fnc1( int n, char **arg )
+{
+  RESPONSE("In function FUNC1\r\n" );
+}
+//void fnc2( int n, char **arg  )
+//{
+//  RESPONSE("In function FUNC2\r\n" );
+//  for( int i=0; i<n; i++ )
+//    RESPONSE("arg[%d] = %s\r\n", i, arg[i] );
+//}
+
+void fnc2( int n, char **arg  )
+{
+    BUF *bp = (BUF *)arg[0];
+    if( !bp ) 
+        return errBufferedOnly();
+
+    if( n<=1 )
+        return errMissingArgs();
+    
+    bp->add("In function FUNC2\r\n" );
+    
+    for( int i=1; i<n; i++ )
+        bp->add("arg[%d] = %s\r\n", i, arg[i] );
+}
+#define INIT(bp) BUF *bp = (BUF *)arg[0]; if( !bp ) return errBufferedOnly()
+void fnc3( int n, char **arg )
+{
+    INIT(bp);
+    bp->add("In function FUNC3\r\n");
+}
+void fnc4( int n, char **arg  )
+{
+  RESPONSE("In function FUNC4\r\n" );
+  for( int i=0; i<n; i++ )
+    RESPONSE("arg[%d] = %s\r\n", i, arg[i] );
+}
+void help( int n, char **arg )
+{
+    exe.help( n, arg );
+}
+CMDTABLE t1[]
+{
+  {"h",    "[select] help",                         help },
+  {"func1", "Calls function-1",                      fnc1 },
+  {"func2", "arg1 arg2 ... argN. Call function-2",   fnc2 },
+  {NULL, NULL, NULL}
+};
+CMDTABLE t2[]
+{
+  {"fn3", "void function3()", fnc3 },
+  {"fn4", "void function4()", fnc4 },
+  {NULL, NULL, NULL}
+};
+
+static int sel = 0;
+void setup(void) 
+{
+    cpu.init();
+    
+    exe.registerTable( t1 );
+    exe.registerTable( t2 );
+    exe.printTables( "See all tables" );  // instead of PF, you can optionally specify a Buf
+
+    sel = atoi( cpu.prompt("Enter 0 for console test, 1 for buffered responses" ) );
+    
+    if( sel )
+        cli.init( ECHO_ON, "cmd-buf:" );
+    else
+        cli.init( ECHO_ON, "cmd-prn:" );
+    cli.prompt();
+}
+
+BUF buf(400);
+void loop()
+{
+    if( !sel )
+    {
+        if( cli.ready() )
+        {
+            char *cmd = cli.gets();                     // cmd points to the heap allocated by CLI
+            PF("(PRN) Command entered: %s\r\n", cmd );
+            exe.dispatchConsole( cmd );                // using Serial.printf(); unbuffered version
+            cli.prompt();
+        }
+    }
+    else
+    {
+        if( cli.ready() )
+        {            
+            char *cmd = cli.gets();                     // cmd points to the heap allocated by CLI
+            PF("(BUF) Command entered: %s\r\n", cmd );
+            exe.dispatchBuf( cmd, buf );                // using Serial.printf(); unbuffered version
+            buf.print();                                // display the buffer
+            
+            PR("OK");
+            PF("Maxsiz=%d, used=%d\r\n", buf.maxsiz, buf.length() );
+            cli.prompt();
+        }
+    }
+}
+#endif
+
+#ifdef XXX
 // ---------------------------------- EXAMPLE0 ------------------------------------
 
 #ifdef EXAMPLE0         // Tests simple gets() and prompt
@@ -85,85 +211,6 @@ void loop()
 }
 #endif
 
-// ---------------------------------- EXAMPLE2 ------------------------------------
-
-#ifdef EXAMPLE2         // Tests simple gets() and prompt
-
-EXE exe;
-        
-#define RESPONSE(...) exe.respond(__VA_ARGS__)
-
-void fnc1( int n, char **arg )
-{
-  RESPONSE("In function FUNC1\r\n" );
-}
-void fnc2( int n, char **arg  )
-{
-  RESPONSE("In function FUNC2\r\n" );
-  for( int i=0; i<n; i++ )
-    RESPONSE("arg[%d] = %s\r\n", i, arg[i] );
-}
-void fnc3( int n, char **arg )
-{
-  RESPONSE("In function FUNC3\r\n");
-}
-void fnc4( int n, char **arg  )
-{
-  RESPONSE("In function FUNC4\r\n" );
-  for( int i=0; i<n; i++ )
-    RESPONSE("arg[%d] = %s\r\n", i, arg[i] );
-}
-void help( int n, char **arg )
-{
-    exe.help( n, arg );
-}
-
-CMDTABLE t1[]
-{
-  {"h",    "[select] help",                         help },
-  {"func1", "Calls function-1",                      fnc1 },
-  {"func2", "arg1 arg2 ... argN. Call function-2",   fnc2 },
-  {NULL, NULL, NULL}
-};
-CMDTABLE t2[]
-{
-  {"fn3", "void function3()", fnc3 },
-  {"fn4", "void function4()", fnc4 },
-  {NULL, NULL, NULL}
-};
-
-void setup(void) 
-{
-    cpu.init();
-    
-    exe.registerTable( t1 );
-    exe.registerTable( t2 );
-    exe.printTables( "See all tables" );  // instead of PF, you can optionally specify a Buf
-
-    cli.init( ECHO_ON, "cmd:" );
-    PR("Main Loop");
-    cli.prompt();
-}
-void loop()
-{
-    if( cli.ready() )
-    {
-        char *cmd = cli.gets();             // cmd points to the heap allocated by CLI
-        PF("Command entered: %s\r\n", cmd );
-
-        exe.dispatch( cmd );                // using Serial.printf(); unbuffered version
-
-        PF("--- Buffered version ---\r\n");
-        
-        Buf response(200);                  // allocate a response buffer
-        exe.dispatch( cmd, &response );     // use the buffered version
-        response.print();                   // display the buffer
-
-        PF("Maxsiz=%d, used:%d\r\n", response.maxsiz, response.length() );
-        cli.prompt();
-    }
-}
-#endif
 
 // ---------------------------------- EXAMPLE1 ------------------------------------
 
@@ -295,3 +342,4 @@ void loop()
 //        fn = f;
 //    PF("%s[%d]: Stack depth is %dx32 bytes\r\n", fn, d, i );
 //}
+#endif

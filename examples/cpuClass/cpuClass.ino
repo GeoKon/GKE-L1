@@ -20,11 +20,11 @@ void setup()
 
         PF( "[%d] Heap now %ld (max=%ld)\r\n", __LINE__, cpu.heapUsedNow(), cpu.heapUsedMax() );
 
-        Buf c('A');
+        BUF c('A');
         PF("[%d] Allocated c[%d]. Heap=%ld\r\n", __LINE__, c.maxsiz,cpu.heapUsedNow()  );
-        Buf x("test");
+        BUF x("test");
         PF("[%d] Allocated test[%d]. Heap=%ld\r\n", __LINE__, x.maxsiz,cpu.heapUsedNow() );
-        Buf y("test", 20 );
+        BUF y("test", 20 );
         PF("[%d] Allocated y[%d]. Heap=%ld\r\n", __LINE__, y.maxsiz, cpu.heapUsedNow() );
         y.free();
         PF("[%d] Dealloc y. Heap=%ld\r\n", __LINE__, cpu.heapUsedNow() );
@@ -32,13 +32,13 @@ void setup()
         PF("[%d] Dealloc x. Heap=%ld\r\n", __LINE__, cpu.heapUsedNow() );
         c.free();
         PF("[%d] Dealloc c. Heap=%ld\r\n", __LINE__, cpu.heapUsedNow() );
-        Buf b; 
+        BUF b; 
         PF("[%d] Allocated b[%d]\r\n", __LINE__, b.maxsiz );
         b.set( cpu.prompt( "2a. Enter something again (<64): " ) );
         b.print("You entered: ");
         PF( "[%d] Heap now %ld (max=%ld)\r\n", __LINE__, cpu.heapUsedNow(), cpu.heapUsedMax() );
         CRLF();
-        Buf s(100); 
+        BUF s(100); 
         s.set( cpu.prompt( "2b. Enter something again (<100): " ) );
         s.print("You entered: ");
         PF( "[%d] Heap now %ld (max=%ld)\r\n", __LINE__, cpu.heapUsedNow(), cpu.heapUsedMax() );

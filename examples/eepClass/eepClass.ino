@@ -11,6 +11,7 @@
  * Global variables use 30332 bytes (37%) of dynamic memory, leaving 51588 bytes for local variables. Maximum is 81920 bytes.
  * Uploading 288112 bytes
  */
+#include "cpuClass.h"
 #include "eepClass.h"   
 #include "serClass.h" 
 #include <FS.h>

@@ -1,5 +1,5 @@
-#include <cpuClass.h>
-#include "ds18Class.h"
+#include "cpuClass.hpp"
+#include "ds18Class.hpp"
 #include <OneWire.h>
 
 

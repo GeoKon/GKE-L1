@@ -7,7 +7,7 @@
 #include <timeClass.h>
 
 #include <OneWire.h>
-#include "ds18Class.h"
+#include <ds18Class.h>
 
 CPU cpu;
 ModuloTic tic(2);       // one tic per second

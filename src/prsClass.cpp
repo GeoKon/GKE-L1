@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <ctype.h>
 #include <stdlib.h>
-#include "prsClass.h"
+#include "prsClass.hpp"
 
 PRS::PRS( int size )
 {

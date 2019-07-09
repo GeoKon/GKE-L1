@@ -1,8 +1,6 @@
 // file: cpuClass.cpp
 
-#include "cpuClass.h"
-
-
+#include "cpuClass.hpp"
 
 // ------- DEFAULT HARDWARE DEFINITIONS FOR NodeMCU -------------------------------
 
@@ -18,7 +16,7 @@
       Serial.begin( baud );
       delay( 500 );
       blink(3);
-      PR("\r\nCPU initialized");
+      PRN("\r\nCPU initialized");
       heapref = ESP.getFreeHeap();
       heapmax = 0;
     }
@@ -76,13 +74,24 @@
     // }
 	char * CPU::prompt( char *prmpt )
     {
-        PN( prmpt );
+        PRN( prmpt );
 		memset( temp, 0, MAX_PROMPT );
-        Serial.setTimeout( -1 );
-        size_t n = Serial.readBytesUntil( '\r', temp, MAX_PROMPT-1);
-        temp[MAX_PROMPT-1] = 0;
-        PR("");
-        return temp;       // buffer is deallocated after exit
+        Serial.flush();
+		int i=0, c=0;
+		for(;;)
+		{
+			if( Serial.available() && (c = Serial.read())>0 )
+			{
+				if( (c=='\r') || (i>=MAX_PROMPT-2) ) 
+					break;
+				temp[i++] = c;	
+				PRN( (char) c);
+			}
+			yield();
+		}
+		temp[i]=0;
+		CRLF();
+        return temp;       
     }
     void CPU::heapUpdate()
     {
@@ -125,166 +134,16 @@
 		}
 	}
 
-// ---------------- Buf Class Definition --------------------------------------
-	void BUF::alloc( int siz )		// helper routine to allocate buffer
-	{
-		if( siz <= BUFSTK_SIZE )
-		{
-			pntr = defbuf;
-			maxsiz = BUFSTK_SIZE;
-		}	
-		else
-		{
-			siz = (siz+15) & 0xFFF0;	// round up to 16 byte boundary
-			if( siz < BUFDEF_SIZE )
-				siz = BUFDEF_SIZE;
-			pntr = new char[siz];
-			maxsiz = siz;	
-		}	
-		//PF("Allocated %d\r\n", maxsiz );
-	}
-	BUF::BUF( int siz )
-    {
-		alloc( siz );
-		*pntr = 0;
-    }
-	BUF::BUF( char *p, int siz )
-    {
-        int N = strlen( p )+1;
-		if( siz < N )
-			siz = N;
-		alloc( siz );
-		strcpy( pntr, p );
-    }
-    BUF::~BUF()
-    {
-        free();
-    }
-	void BUF::free()
-	{
-		if( pntr && (maxsiz > BUFSTK_SIZE) )
-        {
-            delete [] pntr;
-            pntr = NULL;
-        }
-        maxsiz = 0;
-		//PF("Deallocated\r\n" );
-	}
-	void BUF::init()
-	{
-		if( pntr )
-			*pntr = 0;
-	}
-    Buf & BUF::operator = ( char *s ) 
-    {
-        if( pntr )
-        {
-			strncpy( pntr, (const char*)s, maxsiz-1 );		
-			*(pntr+maxsiz-1) = 0;
-		}    
-        return *this;
-    }
-    Buf & BUF::operator = ( const Buf &s ) 
-    {
-        if( this == &s )
-            return *this;
-        if( pntr )
-        {
-			strncpy( pntr, s.pntr, maxsiz-1 );		
-			*(pntr+maxsiz-1) = 0;
-		}  
-        return *this;
-    }
-    Buf & BUF::operator += ( char *s ) 
-    {
-        if( pntr )
-        {
-            int L=strlen( pntr );   // current size
-            strncpy( pntr+L, s, maxsiz-L-1 ); // copy at the end of the Buf safely
-		}
-        return *this;
-    }
-    char *BUF::set( const char *format, ... )
-    {
-        if( pntr )
-        {
-            va_list args;
-            va_start (args, format );
-            char *p = pntr;             // where to store new data
-            int avail = maxsiz - 1;
-            vsnprintf(p, avail, format, args);
-            va_end( args );
-        }
-        return pntr;
-    }
-    char *BUF::set( const Buf &s )
-    {
-        if( pntr )      
-        {
-			strncpy( pntr, s.pntr, maxsiz-1 );        // copy string to this buffer safely
-			*(pntr+maxsiz-1) = 0;
-		}    
-        return pntr;
-    }
-    char *BUF::add( const char *format, ... )
-    {
-        if( pntr )
-        {
-			va_list args;
-			va_start (args, format );
-			char *p = pntr + strlen( pntr );    		// where to store new data
-            int avail = maxsiz - 1 - strlen( pntr );	// left over space
-			vsnprintf(p, avail, format, args);
-			*(pntr+maxsiz-1) = 0;						// EOS
-			va_end( args );
-        }
-        return pntr;
-    }
-	char *BUF::quotes()
-    {
-        if( pntr )
-        {
-            for( char *p = pntr; *p; p++ )
-			{	
-				if( *p=='\'' )
-					*p= '\"';
-			}
-        }
-        return pntr;
-    }
-    char *BUF::add( Buf &s )
-    {
-        if( pntr )
-        {
-            int L=strlen( pntr );   // current size
-            strncpy( pntr+L, s.pntr, maxsiz-L-1 ); // copy at the end of the Buf safely
-        }
-        return pntr;
-    }
-    void BUF::print( const char *prompt )
-    {
-        PN( prompt );   // print prompt
-        if( pntr )      // ...then string
-            PN( pntr );
-        PR("");         // ...then CRLF  
-    }
-    void BUF::print()
-    {
-        if( pntr )
-            PN( pntr );
-    }
-    char * BUF::operator ! ()    // pointer to buffer
-    {
-        return pntr;
-    }
-    char *BUF::c_str()
-    {
-        return pntr;
-    }
-    int BUF::length()
-    {
-        return strlen( pntr );
-    }
+char *sf( char *sp, size_t sL, const char *format, ... )
+{
+	va_list args;
+	va_start (args, format );
+	vsnprintf( sp, sL-1, format, args );
+	*(sp+sL-1) = 0;						// EOS
+	va_end( args );
+	return sp;
+}
+
 // -------------------------- PIPE OUT ----------------------------------------
 
     COUT::COUT( const char *fo )

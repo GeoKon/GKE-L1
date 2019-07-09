@@ -1,6 +1,6 @@
 // -------------- DEPENDENCIES FROM LIBRARIES ----------------
 
-#include "webSupport.h"
+#include "webSupport.hpp"
 #include <ESP8266mDNS.h>
 #include <FS.h>
 
@@ -90,14 +90,15 @@
 	String INI::fileList()
 	{
 		Dir dir = SPIFFS.openDir("/");
-		String output("",500);
+		//String output("",500);
+		BUF output(512);
 		while (dir.next()) 
 		{    
 			String fileName = dir.fileName();
 			size_t fileSize = dir.fileSize();
 			output.add( "%s (%s)\r\n", fileName.c_str(), formatBytes(fileSize).c_str() );
 		}  
-		return output;
+		return String (!output);
 	}
 // ======================= 3. SUPORT UTILITIES ===========================
 

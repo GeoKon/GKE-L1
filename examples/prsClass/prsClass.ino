@@ -1,4 +1,4 @@
-#include <cpuClass.h>
+#include "cpuClass.h"
 #include "prsClass.h"
 
 CPU cpu;

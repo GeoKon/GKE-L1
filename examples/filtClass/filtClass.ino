@@ -1,5 +1,5 @@
-#include <cpuClass.h>
-#include <filtClass.h>
+#include "cpuClass.h"
+#include "filtClass.h"
 
 CPU cpu;
 FILT filter;

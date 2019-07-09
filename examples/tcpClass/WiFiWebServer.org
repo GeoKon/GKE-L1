@@ -1,0 +1,286 @@
+/*
+ *  This sketch demonstrates how to set up a simple HTTP-like server.
+ *  The server will set a GPIO pin depending on the request
+ *    http://server_ip/gpio/0 will set the GPIO2 low,
+ *    http://server_ip/gpio/1 will set the GPIO2 high
+ *  server_ip is the IP address of the ESP8266 module, will be 
+ *  printed to Serial when the module is connected.
+ */
+
+#include <ESP8266WiFi.h>
+
+const char* ssid = "kontopidis2GHz";
+const char* password = "123456789a";
+
+// Create an instance of the server
+// specify the port to listen on as an argument
+// WiFiServer server(80);
+
+#define P2(A,B) Serial.print(A); Serial.println( B );
+#define P1(A)   Serial.println(A);
+
+//WiFiClient client;
+WiFiServer server(80);
+
+class TCP
+{
+	WiFiServer *pserver;
+	WiFiClient client1;	
+	bool _echo;
+	char buffer[80];
+	int bufidx;
+	bool available;
+	char *_prompt;
+	
+public:
+	void init( int port, char *prompt, bool echo )
+	{
+		WiFiServer server1( port );
+		server1.begin();
+  		server1.setNoDelay( true );
+  		pserver = &server1;
+  		bufidx = 0;
+  		_echo = echo;  
+  		_prompt = prompt;
+  		available = false;	
+  		P1("Server started");	
+	}	
+	bool ready()
+	{
+		if( !available )
+	  	{
+	  		client1 = pserver->available();
+		  	if (client1)
+			{
+				// Wait until the client sends some data
+				P2("Client ", client1);
+				if( client1.connected() )
+					available = true;
+			}
+			bufidx = 0;	
+	  	}
+		if( available )
+		{
+			if( !client1.connected() )
+			{
+				P1("Disconnected");
+				client1.stop();
+				available = false;
+			}
+			else
+			{
+				while (client1.available()>0) 
+				{
+					char c = client1.read();
+					Serial.write(c);
+					if( _echo )
+						client1.write(c);
+					
+					if( c == '\r' )
+					{
+						Serial.write('\n');
+						if( _echo )
+							client1.write('\n');
+						
+						client1.flush();
+						buffer[ bufidx ] = 0;
+						bufidx = 0;						// next char goes back to the beginning
+						P2("Ready Buf0: ", &buffer[0] );
+						
+						return true;
+					}
+					if( (c >= 0x20) && (c< 0x7F) )
+						buffer[ bufidx++ ] = c;				
+				}
+			}		
+		}
+		return false;	
+	}
+	char *gets()
+	{
+		return &buffer[0];
+	}
+	char prompt()
+	{
+		if(_prompt!=NULL)
+			if( available && client1.connected() )
+				client1.print( _prompt );
+	}
+};
+TCP tcp;
+
+void setup() 
+{
+  Serial.begin(115200);
+  delay(10);
+
+  // prepare GPIO2
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, 0);
+  
+  // Connect to WiFi network
+  Serial.println();
+  Serial.println();
+  Serial.print("Connecting to ");
+  Serial.println(ssid);
+  
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(ssid, password);
+  
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("");
+  Serial.println("WiFi connected");
+  
+  // Start the server
+//  server.begin();
+//  server.setNoDelay( true );			/// disable Nagle algorithm
+  tcp.init( 80, "cmd:", true );
+  tcp.prompt();
+  
+
+  // Print the IP address
+  Serial.println(WiFi.localIP());
+}
+
+// https://arduino-esp8266.readthedocs.io/en/latest/esp8266wifi/server-examples.html
+// https://arduino-esp8266.readthedocs.io/en/latest/esp8266wifi/server-class.html?highlight=tcp%20server
+// https://forum.arduino.cc/index.php?topic=474378.0
+
+void loop() 
+{
+  // Check if a client has connected
+  if (tcp.ready())
+  {
+		char *p = tcp.gets();
+		Serial.printf("Received: %s\r\n", p );
+		tcp.prompt();
+  }
+}
+void loop2() 
+{
+  // Check if a client has connected
+  WiFiClient client = server.available();
+  if (client)
+  {
+		// Wait until the client sends some data
+		P2("Client ", client);
+		
+		while (client.connected()) 
+		{
+			while (client.available()>0) 
+			{
+        		char c = client.read();
+        		Serial.write(c);
+			}
+			delay(10);
+		}
+		P1("Disconnected");
+		client.stop();
+  }
+}
+WiFiClient client;
+static bool available = false;
+char buffer[80];
+int bufidx = 0;
+
+
+void loop3() // works fine. Some dely
+{
+  	// Check if a client has connected
+  	if( !available )
+  	{
+  		client = server.available();
+	  	if (client)
+		{
+			// Wait until the client sends some data
+			P2("Client ", client);
+			if( client.connected() )
+				available = true;
+		}
+  	}
+	if( available )
+	{
+		if( !client.connected() )
+		{
+			P1("Disconnected");
+			client.stop();
+			available = false;
+		}
+		else
+		{
+			while (client.available()>0) 
+			{
+				char c = client.read();
+				Serial.write(c);
+			}
+		}
+		
+	}
+	delay(10);
+}
+bool ready()
+{
+	if( !available )
+  	{
+  		client = server.available();
+	  	if (client)
+		{
+			// Wait until the client sends some data
+			P2("Client ", client);
+			if( client.connected() )
+				available = true;
+		}
+		bufidx = 0;	
+  	}
+	if( available )
+	{
+		if( !client.connected() )
+		{
+			P1("Disconnected");
+			client.stop();
+			available = false;
+		}
+		else
+		{
+			while (client.available()>0) 
+			{
+				char c = client.read();
+				Serial.write(c);
+				client.write(c);
+				
+				if( c == '\r' )
+				{
+					Serial.write('\n');
+					client.write('\n');
+					
+					client.flush();
+					buffer[ bufidx ] = 0;
+					bufidx = 0;						// next char goes back to the beginning
+					P2("Ready Buf0: ", &buffer[0] );
+					P2("Ready Buf3: ", &buffer[3] );
+					return true;
+				}
+				if( (c >= 0x20) && (c< 0x7F) )
+					buffer[ bufidx++ ] = c;				
+			}
+		}		
+	}
+	return false;
+}
+char *gets()
+{
+	return &buffer[0];
+}
+void loop4() 
+{
+  // Check if a client has connected
+  if (ready())
+  {
+		char *p = gets();
+		Serial.printf("Received: %s\r\n", p );
+  }
+}
+

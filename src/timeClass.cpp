@@ -1,9 +1,4 @@
-#include "timeClass.h"
-//#include <cpuClass.h>   // needed for ASSERT
-//#ifndef tm_allocated
-//	TIME tm;
-//#endif
-
+#include "timeClass.hpp"
 
 static char *weekdstr[]={"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 static int days_in_month[]={0,31,28,31,30,31,30,31,31,30,31,30,31};
@@ -160,26 +155,27 @@ int TIME::getTime( mask_t type )
 }
 String TIME::getTimeString( void )
 {
-  String s("",40);
+  //String s("",40);
+  BUF s(40);
   s.set( "%02d:%02d:%02d", hours, minutes, seconds );
-  return s;
+  return String( !s );
 }
 String TIME::getDateString( void )
 {
-  String s("",40);
+  //String s("",40);
+  BUF s(40);
   s.set( "%02d/%02d/%02d", month, mday, year );
-  return s;
+  return String(!s);
 }
 String TIME::getDateVerbose( void )
 {
-  String s("",60);
-  
+  BUF s(60);  
   s.set( "%s %s %02d, %4d", 
     weekdstr[ wday >6  ?6 :wday  ],
     monthstr[ month>12 ?12:month ],
     mday,
     year );
-  return s;
+  return String (!s );
 }
 
 //--------------------------------- PRIVATE ROUTINES -----------------------------------

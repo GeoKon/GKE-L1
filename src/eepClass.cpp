@@ -1,7 +1,6 @@
 #include <string.h>
-#include <cpuClass.h>
-#include <eepClass.h>
-
+#include "cpuClass.hpp"
+#include "eepClass.hpp"
 
 // -------------------------------- CLASS EEP --------------------------------------
 	int EEP::notify( char *s )
@@ -26,17 +25,17 @@
 				(head.userN == nuser ) &&
 				(wifi.port != 0);
 	}
-	// If "" deletes value. If NULL, leaves unmodified
+	// If "" deletes value. If NULL or '*', leaves unmodified
     void EEP::initWiFiParms( char *myssid, 
                         char *mypwd, 
                         char *staticIP, 
                         int myport )    // initializes memory WiFi parms
     {
-        if( myssid )
+        if( myssid && (*myssid !='*') )
             strncpy( wifi.ssid, myssid, 16 );
-        if( mypwd )
+        if( mypwd && (*mypwd !='*'))
             strncpy( wifi.pwd, mypwd, 16 );
-        if( staticIP )
+        if( staticIP && (*staticIP !='*') )
             strncpy( wifi.stIP, staticIP, 16 );
         if( myport )
             wifi.port = myport;
@@ -113,19 +112,19 @@
     }
     String EEP::getHeadString()
     {
-        String s("", 256);
+        BUF s(256);
 		s.set("Magic:%04x, Head_sz:%d, User_sz:%d, Boot_count:%d\r\n", 
                 head.magic, head.headN, head.userN, head.reboots );
-		return s;
+		return String( !s );
     }
     String EEP::getWiFiString()
     {
-        String s("", 256);
+        BUF s(256);
 		s.set("SSID:%s, ", 	 &wifi.ssid[0] );
 		s.add("PWD:%s, ", 	 &wifi.pwd[0] );
 		s.add("stIP:%s, ", 	 &wifi.stIP[0] );
 		s.add("Port:%d\r\n", wifi.port );
-		return s;
+		return String( !s );
     }
 	void EEP::printHeadParms( char *prompt )
 	{

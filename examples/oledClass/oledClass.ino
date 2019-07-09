@@ -17,6 +17,7 @@
   Released under the MIT license. Please check LICENSE.txt for more
   information.  All text above must be included in any redistribution. 
 */
+#include "cpuClass.h"
 #include "oledClass.h"
 
 //#define P(A,vargs) Serial.printf(A,vargs); Serial.printf("\r\n");

@@ -1,6 +1,7 @@
 #include <string.h>
-#include <cpuClass.h>
-#include <serClass.h>
+#include "bufClass.hpp"
+#include "cpuClass.hpp"
+#include "serClass.hpp"
 
 void SER::registryStatus( char *prompt )
 {
@@ -257,15 +258,14 @@ void SER::printBuf( char *prompt, byte *base )
 		}
 		return -1;				// not found
 	}
-	String SER::getParmString( int i )
+	B80 SER::getParmString( int i )
     {
         if( i >= nparms )		// must be between 0 and nparms-1;
 			i = nparms-1;
 		
-		String s("", 256);
-		s.set("");
+		B80 s;
 
-		s.add("%16s", prm[i].name );
+		s.set( "%16s", prm[i].name );
 		if( prm[i].type == 'f')
 			s.add( prm[i].help, *((float *)prm[i].pntr) );
 		else if( prm[i].type == 'd')
@@ -282,7 +282,7 @@ void SER::printBuf( char *prompt, byte *base )
 		if( *prompt )
             PF( "%s\r\n", prompt );
 		for( int i=0; i<nparms; i++ )
-			PR( getParmString( i ) );
+			PF( "%s\r\n", !getParmString( i ) );
 	}
 
 // ------------------------------ OLD CODE ---------------------------------------------
@@ -533,23 +533,26 @@ void SER::printBuf( char *prompt, byte *base )
 // ---------------------------- GET STRING FUNCTIONS ------------------------------------			
     String EEP::getHeadString()
     {
-        String s("", 256);
+        //String s("", 256);
+		BUF s(256);
 		s.set("Magic=%04x; Head_sz=%d, WiFi_sz=%d; Rebooted %d times\r\n", 
                 head.magic, head.headN, head.wifiN, head.reboots );
-		return s;
+		return String( !s );
     }
     String EEP::getWiFiString()
     {
-        String s("", 256);
+        //String s("", 256);
+		BUF s(256);
 		s.set("SSID=%s; ", 	 &wifi.ssid[0] );
 		s.add(" PWD=%s; ", 	 &wifi.pwd[0] );
 		s.add("stIP=%s; ", 	 &wifi.stIP[0] );
 		s.add("Port=%d\r\n", wifi.port );
-		return s;
+		return String( !s );
     }
 	String EEP::getUserString()
     {
-        String s("", 256);
+        //String s("", 256);
+		BUF s(256);
 		s.set("");
         for( int i=0; i<nparms; i++ )
         {
@@ -570,7 +573,7 @@ void SER::printBuf( char *prompt, byte *base )
                 s.add( "%s", (char *)prm[i].pntr );
             s.add("\r\n");
         }
-    	return s;
+    	return String( !s );
     }
 
 // ---------------------------- PRINT STRUCT FUNCTIONS ------------------------------------		
@@ -578,19 +581,19 @@ void SER::printBuf( char *prompt, byte *base )
 	{
 		if( *prompt )
             PF( "%s\r\n", prompt );
-		PN( getHeadString() );
+		PR( getHeadString() );
 	}
 	void EEP::printWiFiStruct( char *prompt )
 	{
 		if( *prompt )
             PF( "%s\r\n", prompt );
-		PN( getWiFiString() );
+		PR( getWiFiString() );
 	}
 	void EEP::printUserStruct( char *prompt )
 	{
 		if( *prompt )
             PF( "%s\r\n", prompt );
-		PN( getUserString() );
+		PR( getUserString() );
 	}
     void EEP::updateWiFiParms( char *myssid, char *mypwd, char *staticIP, int myport )    // initializes memory WiFi parms
     {
@@ -651,7 +654,7 @@ void SER::printBuf( char *prompt, byte *base )
         {
 			s.add("Magic=%04x; WiFi_sz=%d; USER_PARMSz=%d; Rebooted %d times\r\n", 
                 head.magic, head.wifiN, head.userN, head.reboots );
-			// PN("C is 1 "); PR( !s );
+			// PR("C is 1 "); PRN( !s );
         }
         if( c & WIFI_PARMS )
         {            
@@ -659,19 +662,19 @@ void SER::printBuf( char *prompt, byte *base )
             s.add(" PWD=%s; ", 	 &wifi.pwd[0] );
             s.add("stIP=%s; ", 	 &wifi.stIP[0] );
             s.add("Port=%d\r\n", wifi.port );
-			// PN("C is 2 ");PR( !s );
+			// PR("C is 2 ");PRN( !s );
         }
         if( c & USER_PARMS )
         {
 			char temp[100];
             s.add( "%s", formatUserParm( userf, userp, temp, 100 ) );
-			// PN("C is 4 ");PR( !s );
+			// PR("C is 4 ");PRN( !s );
         }		
 		return s;
     }
     void EEP::printParms( char *prompt, select_t select ) 
     {
-        PR( getParmString( prompt, select ) );
+        PRN( getParmString( prompt, select ) );
     }
 
     void EEP::printUserParms( char *prompt )
