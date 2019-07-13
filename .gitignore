@@ -9,3 +9,4 @@
 *.jpg filter=lfs diff=lfs merge=lfs -text
 *.gif filter=lfs diff=lfs merge=lfs -text
 
+src/archives (not tracked)/

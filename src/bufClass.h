@@ -4,27 +4,20 @@
 
 //#define bufClass_debug
 // -------------------------------- Base class for HEAP or STACK ----------------------
-class BUFBASE					// base class
+
+class BUFBASE						// base class
 {
   protected:
-    char *pntr;					// to be moved to "protected"
+    char *pntr;						// to be moved to "protected"
     size_t maxsiz;					// max size of available buffer
 	 
   public:
-
-    //BUF( int siz=BUFDEF_SIZE );
-	BUFBASE(): pntr(NULL), maxsiz(0) {}
-	
-//  BUF & operator = ( char *s );
-//  BUF & operator = ( const BUF &s );
-    
+   
 	void init();
 	
 	char *copy( const char *s );		
 	char *set( const char *format, ... );
-//  char *set( const BUF &s );
     char *add( const char *format, ... );
-//  char *add( BUF &s );
 
 	char *quotes();
 	void print( const char *prompt="" );

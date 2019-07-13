@@ -1,6 +1,7 @@
 #include <string.h>
-#include "cpuClass.hpp"
-#include "eepClass.hpp"
+#include "cpuClass.h"
+#include "bufClass.h"
+#include "eepClass.h"
 
 // -------------------------------- CLASS EEP --------------------------------------
 	int EEP::notify( char *s )
@@ -112,14 +113,14 @@
     }
     String EEP::getHeadString()
     {
-        BUF s(256);
+        BUFT <256> s;
 		s.set("Magic:%04x, Head_sz:%d, User_sz:%d, Boot_count:%d\r\n", 
                 head.magic, head.headN, head.userN, head.reboots );
 		return String( !s );
     }
     String EEP::getWiFiString()
     {
-        BUF s(256);
+		BUFT <256> s;
 		s.set("SSID:%s, ", 	 &wifi.ssid[0] );
 		s.add("PWD:%s, ", 	 &wifi.pwd[0] );
 		s.add("stIP:%s, ", 	 &wifi.stIP[0] );

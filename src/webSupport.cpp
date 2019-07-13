@@ -1,5 +1,6 @@
 // -------------- DEPENDENCIES FROM LIBRARIES ----------------
 
+#include <bufClass.h>
 #include "webSupport.hpp"
 #include <ESP8266mDNS.h>
 #include <FS.h>

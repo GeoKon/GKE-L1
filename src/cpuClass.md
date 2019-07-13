@@ -1,67 +1,65 @@
 ##                 CPU Class
 
-Includes core MCU functionality like control of the LED, push-buttons and 
-statistics of the heap. It also includes a convenient set of I/O routines
-to print formatted variables and get console strings.
-  
-- **CPU cpu** class allocation. Typically allocated globally.
-- **cpu.init( baud, led, button )** initialzies serial port
-- **cpu.led( BLINK|ON|OFF, [times])** controls the LED
-- **cpu.button()** true or false depending if button is pressed
-- **cpu.buttonPressed()** true if pressed; waits until released
-- **cpu.prompt()** prints a prompt and waits for string response. Returns 'char *'
-to a string locally allocated.
-
-**Heap**
-
-- **cpu.heapUpdate()** updates heap max
-- **cpu.heapUsedNow()** indicates amount of heap used
-- **cpu.heapUsedMax()** indicates max amount of heap used
-
-**Macros**
-
-- **ASSERT(condition)** aborts if not true
-- **PR( text )** prints text with CRLF at the end
-- **PN( text )** prints text as is
-- **PF( format, ...)** same as printf()
+**CPU** encapsulates core MCU and I/O functionality, including efficient console I/O, control of the LED, sensing push-buttons, statistics of the heap. 
  
-##                 Buffer Class
+### Summary of functions
 
-**Buf** class is a highly optimized class; it complements the **String** class. 
-Key features include:
+For the following summary, assume that `cpu` is allocated as `CPU cpu`.
 
-- formatted, *printf()* style of new buffers -- a safe version of *sprintf()*
-- appending of new variables in a formatted fashion
-- the usual **'='** and **'=+'** operators
-- direct access of the 'char *' pointer of the string.
+**cpu.init** ( baud=115200, ledp=LED+NEGATIVE_LOGIC, button=BUTTON+NEGATIVE_LOGIC )
+> Initializes the primary serial port, defines the logic of the LED and button.
 
-**Buf** uses either the local stack for allocations of less than 16-bytes or
-the heap for larger sizes. In fact, **Buf s('c')** uses only two bytes from the
-stack eliminating the extensive use of the heap. Heap is only used for large 
-buffers greater than 16 characters. 
+**cpu.blink** ( times )
+> Blinks the LED for specified number of times. ON/OFF intervals are 100ms and 200ms respectively.
 
-It is primarily used for simple string manipulations of equations and concatenations.
-In contrast, the **String** class includes very rich functionality, but uses the 
-heap extensively which can cause fragmentation. 
+**cpu.led** ( enum onoff_t onoff, times=1 )
+> Turns LED on or off. The constants `ON` and `OFF` or `BLINK` can be used. In case of `BLINK` the ON/OFF intervals are the same as `blink()`
+
+**cpu.button** ()
+> Returns true or false depending if the button is pressed or not.
+
+**cpu.buttonPressed** ()
+> Returns true or false depending if the button is pressed and released. While the button is pressed, the LED is turned ON and when released, the LED is turned OFF. The following example show how this function should be used
+
+    
+    if( cpu.buttonPressed() ) 		// Example 1: wait until button is pressed and released
+    {
+    	do_something();
+    	while( cpu.buttonPressed() )
+    		;
+    }   
+    
+    void loop()						// Example 2: inside the loop()
+    {
+    	if( cpu.buttonPressed() )
+    		do_something();			// this is called only once on button pressed
+    } 
+
+**char *cpu.prompt** ( prompt )
+> Prints the specified prompt and waits for a string terminated by RETURN. Returns a pointer to the string without the terminating RETURN. The string entered cannot exceed 79 characters and it is protected to this maximum size.
+
+**cpu.heapUpdate()** 
+**cpu.heapUsedNow()**
+**cpu.heapUsedMax()**
+> These routine is to be used to detect memory leaks. The heap size used is set when the class `CPU` is allocated. Thereafter, you may insert `cpu.heapUpdate()` in various part of the code to track the size of the heap. At any point you may print the current size of the heap using `cpu.heapUsedNow()` of the maximum heap size using `cpu.heapUsedMax()`.
+
+**cpu.die** ( char *prompt, int pattern )
+> Prints the prompt and the current heap size. Then, enters in an infinite blinking the LED with a pattern 100ms/200ms for `pattern` times, followed by 500ms of delay.
+
+**sf** ( char *sp, size_t sL, const char *format, ... )
+**SF** ( char *sp, char *format, ... )
+> Safe versions of the `sprintf()` function. The second is a MACRO assumes the the string `sp` is previously declared as `char sp[size]`
+
+
+##                 Macros
+
+- **ASSERT** (condition) aborts if not true
+- **PR **( text ) prints text (no CRLF)
+- **PRN**( text ) prints text followed by CRLF
+- **PF **( format, ...) same as printf()
+- **PFN**( format, ...) same as printf() followed by CRLF
+- **CRLF**()
  
-- **Buf s([size])** declares a new buffer area. **size** defaults to 64 characters
-including the \0 at the end.
-- **Buf s(0..2)** allocate just two bytes of \0. **Buf s('c')** allocates 'c\0'
-- **Buf s("string", [size])** allocate a buffer containing a string; allocation is 
-to the size of the string, unless followed by a specific size.
-- **s.free()** to free previously allocated heap space
-
-- **s.pntr** to access the allocated buffer. Same is **!s**. Same as **s.c_str()**
-- **s.init()** to initialize the buffer for subsequent **s.add()** operations
-- **s.length()** same as strlen( !s )
-- **s.maxsiz** max size of allocated buffer
- 
-- **s=string** or **s = q** sets s equal to **string**
-- **s+=string** appends **string**
-- **s.set( format, ...)** formats and sets contents
-- **s.add( format, ... )** formats and adds contents
-- **s.print()** prints current buffer. Analogous to PN()
-
 ##                 Console Pipe
 
 - **COUT P** to allocate a new pipe stream

@@ -1,6 +1,6 @@
 // file: cpuClass.cpp
 
-#include "cpuClass.hpp"
+#include "cpuClass.h"
 
 // ------- DEFAULT HARDWARE DEFINITIONS FOR NodeMCU -------------------------------
 
@@ -55,7 +55,7 @@
         }
         else // if( justpressed )
         {
-            if( button() )  // continuing pressed
+            if( button() )  	// continuing pressed
                 return false;
             justpressed = false;
             led( OFF );
@@ -74,7 +74,7 @@
     // }
 	char * CPU::prompt( char *prmpt )
     {
-        PRN( prmpt );
+        PR( prmpt );
 		memset( temp, 0, MAX_PROMPT );
         Serial.flush();
 		int i=0, c=0;
@@ -85,7 +85,7 @@
 				if( (c=='\r') || (i>=MAX_PROMPT-2) ) 
 					break;
 				temp[i++] = c;	
-				PRN( (char) c);
+				PR( (char) c);
 			}
 			yield();
 		}

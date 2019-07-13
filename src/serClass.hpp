@@ -3,8 +3,8 @@
 // See eepClass.md for use
 
 #include <EEPROM.h>
-#include <bufClass.hpp>
-#include <cpuClass.hpp>
+#include <bufClass.h>
+#include <cpuClass.h>
 
 // -------------------------- SERIALIZER ------------------------------
 #define LSHIFT(A) A=(A<<2)&(~3)

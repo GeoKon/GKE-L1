@@ -1,4 +1,4 @@
-#include "cliClass.hpp"		// this already includes cpuClass.h
+#include "cliClass.h"		// this already includes cpuClass.h
 
 // ------------------------------ CLI CLASS ------------------------------------------
 

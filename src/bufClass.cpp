@@ -1,5 +1,5 @@
 #include "macros.h"
-#include "bufClass.hpp"
+#include "bufClass.h"
 
 // ---------------- BASE Buf Class Definition --------------------------------------
 
@@ -57,10 +57,13 @@
     {
         PR( prompt );   // print prompt
         if( pntr )      // ...then string
-            PR( pntr );
-        CRLF();         // ...then CRLF  
+        {
+			PR( pntr );
+			if( pntr[ strlen(pntr)-1 ] != '\n' )
+				PR("\r\n");        		// ...then CRLF  
+		}
     }
-    char * BUFBASE::operator ! ()    // pointer to buffer
+    char * BUFBASE::operator ! ()    	// pointer to buffer
     {
         return pntr;
     }

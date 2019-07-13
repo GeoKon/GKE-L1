@@ -1,4 +1,5 @@
-#include "timeClass.hpp"
+#include "timeClass.h"
+#include "bufClass.h"
 
 static char *weekdstr[]={"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 static int days_in_month[]={0,31,28,31,30,31,30,31,31,30,31,30,31};
@@ -156,20 +157,20 @@ int TIME::getTime( mask_t type )
 String TIME::getTimeString( void )
 {
   //String s("",40);
-  BUF s(40);
+  B64 s;
   s.set( "%02d:%02d:%02d", hours, minutes, seconds );
   return String( !s );
 }
 String TIME::getDateString( void )
 {
   //String s("",40);
-  BUF s(40);
+  B64 s;
   s.set( "%02d/%02d/%02d", month, mday, year );
   return String(!s);
 }
 String TIME::getDateVerbose( void )
 {
-  BUF s(60);  
+  B64 s;  
   s.set( "%s %s %02d, %4d", 
     weekdstr[ wday >6  ?6 :wday  ],
     monthstr[ month>12 ?12:month ],

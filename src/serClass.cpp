@@ -1,6 +1,6 @@
 #include <string.h>
-#include "bufClass.hpp"
-#include "cpuClass.hpp"
+#include "bufClass.h"
+#include "cpuClass.h"
 #include "serClass.hpp"
 
 void SER::registryStatus( char *prompt )

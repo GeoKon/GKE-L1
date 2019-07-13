@@ -1,5 +1,5 @@
 #include "filtClass.hpp"
-#include "cpuClass.hpp"
+#include "cpuClass.h"
 #include <math.h>
 // ------------------------------ IIR Class ---------------------------
 

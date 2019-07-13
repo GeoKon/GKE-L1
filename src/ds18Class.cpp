@@ -1,4 +1,4 @@
-#include "cpuClass.hpp"
+#include "cpuClass.h"
 #include "ds18Class.hpp"
 #include <OneWire.h>
 
