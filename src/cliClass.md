@@ -48,19 +48,18 @@ Class EXE
 This class is to be used to parse a string and dispatch to an appropriate
 execution function. 
 
-**Public class methods**
+### Public class methods
 
     EXE();									
 	void registerTable( CMDTABLE *t );
 	void printTables( char *prompt = "" );
-	void getTables  ( char *prompt, Buf &temp );
-	void printHelp( char *mask = "" );
+	void help( int n, char *arg[] );
 	void getHelp( char *mask, Buf &temp );
 	
-	void dispatch( char *s );				// must use printf()
-	void dispatch( Buf &cmd );				
-	void dispatch( char *s, Buf &result );	// may or may not use printf()
-	void dispatch( Buf &cmd, Buf &result );
+	void dispatchConsole( char *s );		
+	void dispatchBuf( char *s, Buf &result );
+	
+### CMDTABLE
 
 Before describing the class, the CMDTABLE structure needs to be introduced. CMDTABLE is a collection of labels, followed by a help literal, followed by
 an function. Example:
@@ -83,41 +82,13 @@ where `nargs` indicates the number of arguments (3 in this case) and the
 `arg[]` array pointing to `func2`, `10` and `20` respectively.
 The function may do any level of processing within, print something and return.
 
-To allow usage of this structure in WEB applications, a buffering option
-is provided. The prototype is extended with a third argument, `Buf &bf`. In
-this case, the function may use `bf.add()` instead of the typical `printf()`
-to accumulate a response. The following example of a main loop is indicative
-of the use.
+The argument `args[0]` has special purpose and will be described later. 
 
-	void loop()
-	{
-		if( cli.ready() )
-		{
-			Buf cmd;			// buffer of user input
-			cmd = cli.gets();	// save the response in cmd
 
-			Buf resp;					// buffer of response
-			exe.dispatch( cmd, resp );	// execute the command pointed by cmd
-
-			... do something with response 'resp' ...
-		}
-	}
-
-If it totally up to the pointed functions (`fnc2()` in this example) to use
-the 3-rd argument or to ignore it and use `printf()`. Typically, a set of
-functions use a macro to define the default type of responses. For example:
-
-	#define RESPONSE Serial.printf
-		or
-	#define RESPONSE bf.add
-
-	void fnc2( int n, char *arg[], Buf &bf )
-	{
-		RESPONSE( "This is function fnc2\r\n" );
-	}
+### MAIN setup()
 
 Tables are registered with the `exe.registerTable()` method. The EXE class
-also includes methods to print the content of the tables, or get them as buffers. 
+also includes methods to print the content of the tables. 
 For example,
 
 	EXE exe;
@@ -127,12 +98,101 @@ For example,
 		exe.registerTable( table1 );
 		exe.registerTable( table2 );
 		exe.printTables("See Tables");
-
-		 OR
-		Buf mybuf;
-		exe.getTables( "See Tables", mybuf );
-		mybuf.print();
 		....
+	}
+There are a couple of hard coded limits on this:
+
+	#define MAX_TENTRIES 10	// max number of command tables
+	#define MAX_TOKENS 10	// max number of tokens in a command line
+	#define MAX_INPCMD 80	// max size of a command line
+
+### MAIN loop() 
+
+There are two ways to dispatch commands in the main loop: using the `exe.dispatchConsole()` and `exe.dispatchBuf()`. The operation of the first is shown by the following example:
+
+	void loop()
+	{
+		if( cli.ready() )
+		{
+			char *p = cli.gets();			// get pointer to user entered string
+			exe.dispatchConsole( p );		// execute CLI based using previously registered tables
+			cli.prompt();
+		}
+	}
+
+The dispatcher calls the various handlers using as agrs[0] = NULL. So, handlers must use the usual PR() or PF() functions to respond to the console. An example of a typical handler is shown below:
+
+	// Assume that user entry is 'test 10 20.3' with the first argument required but the last argument optional
+
+	void test( int n, char *args[] )
+	{
+		if( n<=1 )
+		{
+			PR( missingArgs );		// prints an error message
+			return;
+		}
+		int n1 = atoi( args[1] );			// the first argument
+
+		float n2 = 0.0;						// default value for 2nd argument
+		if( n>2 )							// if provided, extract 2nd argument
+			n2 = atof( args[2] );
+		
+		PFN("You entered %d, %f", n1, n2 );
+	}
+
+In addition to using the console, the `exe.dispatchBuf()` can be used to process buffer strings. This is illustrated below:
+
+	BUF buf(1024);							// allocation of buffer in the HEAP
+	void loop()
+	{
+		if( cli.ready() )
+		{
+			char *p = cli.gets();			// get pointer to user entered string
+			exe.dispatchBuf( p, buf );		// execute 's' based using previously registered tables
+			PR( !buf );						// print buffer as stored in 'buf' by the handlers
+		}	
+	}
+
+The dispatcher calls the various handlers using agrs[0] = &buf. So, can handlers could use this pointer to save the results. An example of a typical handler is shown below:
+
+	// Buffered version of previous handler
+
+	void test( int n, char *args[] )
+	{
+		BUF b = (BUF *)arg[0];				// see below for BINIT() macro definition
+		if( b == NULL )						// included in macro
+		{
+			PR( bufferedOnly );
+			return;
+		}									// last line of BINIT()
+
+		if( n<=1 )
+		{	
+			b->set( missingArgs );
+			return;
+		}
+
+		int n1 = atoi( args[1] );			// the first argument
+
+		float n2 = 0.0;						// default value for 2nd argument
+		if( n>2 )							// if provided, extract 2nd argument
+			n2 = atof( args[2] );
+		
+		b->set("You entered %d, %f", n1, n2 );
+	}
+
+Using the macro BINIT(), the same code as above is implified as follows:
+
+	void test( int n, char *args[] )
+	{
+		BINIT( b, args );
+	
+		if( n<=1 )
+		{	
+			b->set( missingArgs );
+			return;
+		}
+		... etc ...
 	}
 
 See `\examples\cliClass.ino` for an example.		

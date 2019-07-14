@@ -1,5 +1,4 @@
 #pragma once
-#include "cpuClass.h"   // needed for the Buf class
 #include "bufClass.h"
 
 /*
@@ -64,22 +63,19 @@ public:
 	void printTables( char *prompt = "" );
 	void help( int n, char *arg[] );
 		
-	void dispatchConsole( char *s  );					// must use printf()
-//	void dispatchConsole( BUF &cmd );					// must use printf()
-	
-	void dispatchBuf( char *s,  BUF &result );
-//	void dispatchBuf( BUF &cmd, BUF &result );
+	void dispatchConsole( char *s  );			// must use printf()
+	void dispatchBuf( char *s, BUF &result );
 
-	// to be deprecated !!!
-	void respond( const char *format, ... );			// if cmdbf is NULL, uses printf()
-														// else, stores into this buffer.
-	void respondStr( const char *s );			
-	
-	// to be used in dispatch handlers
+	#ifdef DONT_DEPRECATE
+	void respond( const char *format, ... );	// if cmdbf is NULL, uses printf()
+	void respondStr( const char *s );			// else, stores into this buffer.
+	#endif
 	
 private:
+	#ifdef DONT_DEPRECATE
 	char *respbf;					// set by dispatch. Used by handlers. NULL if Serial.printf()
 	int   respsz;					// if zero, user printf
+	#endif
 	
 	int ntables;					// number of table entries
 	CMDTABLE *table[MAX_TENTRIES];	// pointers to tables
@@ -91,5 +87,17 @@ private:
 	
 	int tokenize( char *userbuf, char *mytok[], int mxtok  );	// generic
 };
-extern void errBufferedOnly();
-extern void errMissingArgs();
+
+extern void errBufferedOnly();		// to be deprecated
+extern void errMissingArgs();		// to be deprecated
+extern char *missingArgs;
+extern char *bufferedOnly;
+
+#define BINIT(Bp,Arg) 			\
+	BUF *Bp = (BUF *)Arg[0]; 	\
+	if( !Bp ) 					\
+	{							\
+		PR( bufferedOnly );		\
+		return;					\
+	}
+

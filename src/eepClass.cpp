@@ -1,5 +1,4 @@
 #include <string.h>
-#include "cpuClass.h"
 #include "bufClass.h"
 #include "eepClass.h"
 

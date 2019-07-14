@@ -2,7 +2,8 @@
 #include <macros.h>
 #include <Arduino.h>
 
-//#define bufClass_debug
+#define DEBUG_CHAR '@'
+
 // -------------------------------- Base class for HEAP or STACK ----------------------
 
 class BUFBASE						// base class
@@ -10,7 +11,8 @@ class BUFBASE						// base class
   protected:
     char *pntr;						// to be moved to "protected"
     size_t maxsiz;					// max size of available buffer
-	 
+	const char *name;
+
   public:
    
 	void init();
@@ -31,19 +33,22 @@ class BUFBASE						// base class
 // -------------------------------- BUF located at the HEAP --------------------------
 class BUF: public BUFBASE
 {
-private:
-	const char *name;
-	
 public:
-    BUF( int size, const char *first="" )
+    BUF( int size )
+    {
+        pntr = new char[ size ];
+        maxsiz = size;
+		name = "";			
+		*pntr = 0;		
+    }
+	BUF( const char *first, int size=512 )
     {
         pntr = new char[ size ];
         maxsiz = size;
 		name = first;		// for debugging purposes
-        copy( first );		// this also initialized BUF
-		#ifdef bufClass_debug
-			PF("Allocated '%s[%d]'.\t", name, size );
-		#endif
+        copy( first );		// this also initializes BUF
+		if( *name==DEBUG_CHAR )
+			PF("Allocated %s[%d]\r\n", name, maxsiz );
     }
     ~BUF()
     {
@@ -51,9 +56,8 @@ public:
 		{
 			delete [] pntr;
 			maxsiz = 0;
-			#ifdef bufClass_debug
-				PF("Deallocated '%s'.    \t", name );
-			#endif
+			if( *name==DEBUG_CHAR )
+				PF("Deallocated %s\r\n", name );
 		}
     }
     BUF & operator = ( const char *s ) 
@@ -62,6 +66,7 @@ public:
         return *this;
     }
 };
+
 // -------------------------------- BUF located at the STACK --------------------------
 template < int T>
 class BUFT: public BUFBASE
@@ -69,17 +74,15 @@ class BUFT: public BUFBASE
 private:
     char s[T];
 public:
-    BUFT( const char* sinit="" ) 
+    BUFT( const char* first="", int ignore = 0 ) 
     {
         pntr = s;
         maxsiz = sizeof s;
-        copy( sinit );
-    }
-	BUFT( int ignore, const char* sinit="" ) 
-    {
-        pntr = s;
-        maxsiz = sizeof s;
-        copy( sinit );
+		name = first;		// for debugging purposes
+        copy( first );		// this also initializes BUF
+		if( *name==DEBUG_CHAR )
+			PF("Allocated %s[%d]\r\n", name, maxsiz );
+		
     }
 	~BUFT()
 	{

@@ -20,11 +20,7 @@
 
 // GKE: NO MODIFICATIONS TO THIS FILE
 
-#include "oledClass.hpp"
-
-//#ifndef oled_allocated
-//	OLEDClass oled;
-//#endif
+#include "oledClass.h"
 
 OLED::OLED(uint8_t sda, uint8_t scl, uint8_t address ) 
 {
@@ -151,19 +147,7 @@ void OLED::setBrightness(unsigned char Brightness)
    sendCommand(Brightness);
 }
 
-void OLED::setHorizontalMode()
-{
-    addressingMode = HORIZONTAL_MODE;
-    sendCommand(0x20);                      //set addressing mode
-    sendCommand(0x00);                      //set horizontal addressing mode
-}
 
-void OLED::setPageMode()
-{
-    addressingMode = PAGE_MODE;
-    sendCommand(0x20);                      //set addressing mode
-    sendCommand(0x02);                      //set page addressing mode
-}
 
 void OLED::setTextXY(unsigned char row, unsigned char col)
 {
@@ -224,6 +208,20 @@ bool OLED::putChar(unsigned char ch)
 }
 
 #ifdef OLED_EXPANDED
+		void OLED::setHorizontalMode()
+		{
+			addressingMode = HORIZONTAL_MODE;
+			sendCommand(0x20);                      //set addressing mode
+			sendCommand(0x00);                      //set horizontal addressing mode
+		}
+
+		void OLED::setPageMode()
+		{
+			addressingMode = PAGE_MODE;
+			sendCommand(0x20);                      //set addressing mode
+			sendCommand(0x02);                      //set page addressing mode
+		}
+
 		void OLED::putString(const char *string)
 		{
 			unsigned char i=0;

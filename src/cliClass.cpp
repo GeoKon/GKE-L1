@@ -1,4 +1,4 @@
-#include "cliClass.h"		// this already includes cpuClass.h
+#include "cliClass.h"		// this already includes bufClass.h
 
 // ------------------------------ CLI CLASS ------------------------------------------
 
@@ -146,14 +146,15 @@
 	
 	// if cmdbf is NULL, it uses printf()
 	// else, appends to buffer.
-	
+
+#ifdef DONT_DEPRECATE
 	void EXE::respond( const char *fmt, ... )
 	{
-		// va_list va;
-		// va_start(va, fmt);
-		// char buf[vsnprintf(NULL, 0, fmt, va) + 1];
-		// vsprintf(buf, fmt, va);
-		// va_end(va);
+		va_list va;
+		va_start(va, fmt);
+		char buf[vsnprintf(NULL, 0, fmt, va) + 1];
+		vsprintf(buf, fmt, va);
+		va_end(va);
 		
 		va_list va;
 		va_start(va, fmt);
@@ -173,6 +174,7 @@
 		}	
 		va_end(va);
 	}
+	// to be deprecated
 	void EXE::respondStr( const char *s )
 	{
 		if( (respsz==0) || (respbf == NULL) ) 
@@ -187,14 +189,13 @@
 			*(respbf + respsz-1)=0;	// append EOS
 		}	
 	}
-	// void EXE::dispatchConsole( BUF &bf )  
-	// {
-		// dispatchConsole( bf.c_str() );
-	// }
+#endif
 	void EXE::dispatchConsole( char *s )  
 	{
+		#ifdef DONT_DEPRECATE
 		respbf = NULL;									// set bf and size to zero
 		respsz = 0;										// to force printf() in response
+		#endif
 		
 		strncpy( temp, s, MAX_INPCMD-1 );			
 		temp[ MAX_INPCMD-1 ] = 0;
@@ -217,17 +218,15 @@
 			  }
 			}
 		}
-		respond( "[%s] not found\r\n", cmnd );
+		PF( "[%s] not found\r\n", cmnd );
 	}
-	// void EXE::dispatchBuf( BUF &bf, BUF &result )  
-	// {
-		// return dispatchBuf( bf.c_str(), result );
-	// }
 	void EXE::dispatchBuf( char *s, BUF &result )    
 	{
+		#ifdef DONT_DEPRECATE
 		respbf = result.c_str();
-		respsz = result.size();
-		*respbf = 0;			// insert EOS since we start from the beginning
+		respsz = result.size();		// not really used
+		#endif
+		result.init();			 	// insert EOS since we start from the beginning
 		
 		strncpy( temp, s, MAX_INPCMD-1 );			
 		temp[ MAX_INPCMD-1 ] = 0;
@@ -255,12 +254,14 @@
 			  }
 			}
 		}
-		respond( "[%s] not found\r\n", cmnd );
+		result.set( "[%s] not found\r\n", cmnd );
 	}
 	
 	void EXE::help( int n, char *arg[] )
 	{
 		char *mask;
+		BUF *bp = (BUF *)arg[0];
+		
 	    mask = (n<=1) ? (char *)"" : arg[1];
 		// if( cmdbf )
 				// cmdbf->init();
@@ -270,19 +271,27 @@
 			//PF("Mask is %s, table %d\r\n", mask, i );
 			
 			for( int j=0; row->cmd ; j++, row++ )
+			{
 				if( (strncmp( row->cmd, mask, strlen(mask)) == 0) || (*mask==0) )
-				{	//PF( "{\t%s\t%s}\r\n", row->cmd, row->help );
-					respond( "\t%s\t%s \r\n", row->cmd, row->help );
+				{	
+					if( bp==NULL )
+						PF     ( "\t%s\t%s}\r\n", row->cmd, row->help );
+					else
+						bp->add( "\t%s\t%s \r\n", row->cmd, row->help );
 				}
-				
+			}
 		}
 	}
 
+char *missingArgs  = "ERROR: Missing arguments!\r\n";
+char *bufferedOnly = "ERROR: This command can only be used in buffered mode!\r\n";
+
+// to be deprecated
 void errBufferedOnly()
 {
-    PRN("ERROR: This command can only be used in buffered mode!");
+    PR( bufferedOnly );
 }
 void errMissingArgs()
 {
-    PRN("ERROR: Missing arguments!");
+    PR( missingArgs );
 }

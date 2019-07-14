@@ -1,22 +1,3 @@
-/*
-  07/29/2016
-  Author: Makerbro
-  Platforms: ESP8266
-  Language: C++
-  File: HelloString.ino
-  ------------------------------------------------------------------------
-  Description: 
-  Demo for OLED dsps showcasing writing string types.
-  ------------------------------------------------------------------------
-  Please consider buying products from ACROBOTIC to help fund future
-  Open-Source projects like this! We'll always put our best effort in every
-  project, and release all our design files and code for you to use. 
-  https://acrobotic.com/
-  ------------------------------------------------------------------------
-  License:
-  Released under the MIT license. Please check LICENSE.txt for more
-  information.  All text above must be included in any redistribution. 
-*/
 #include "cpuClass.h"
 #include "oledClass.h"
 

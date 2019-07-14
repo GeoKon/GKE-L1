@@ -2,8 +2,8 @@
 
 // See eepClass.md for use
 
+#include "macros.h"
 #include <EEPROM.h>
-#include "cpuClass.h"
 
 #define EEP_MAGIC ('K'*256+'O')
 #define CHECK PF

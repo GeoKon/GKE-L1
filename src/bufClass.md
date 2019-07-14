@@ -11,16 +11,20 @@ Key features include:
 
 It is primarily used for simple string manipulations of equations and concatenations. In contrast, the **String** class includes very rich functionality, uses the heap extensively which can cause fragmentation. 
 
-There are two different **BUF** definitions:
+There are three different **BUF** definitions:
 
-    - BUF( size, ["string"] )    
-    - BUFT << size >> (["string"]), and the equivalent convenient defines of 
-    	- B32
-    	- B64
-    	- B80
+- ** BUF**( size );
+- ** BUF**( string, [size=512] );
+- ** BUFT < size >** (["string"]), and the equivalent convenient defines of 
+	- **B32**
+	- **B64**
+	- **B80**
 
-The first allocates in the HEAP the specified size and if the second argument `string` is given, it initializes the buffer with it.  
-The second is a TEMPLATE of specified size allocating memory in the stack. If the argument `string` is given, the buffer is initialized with it; otherwise the buffer is initialized to 'empty'. The convenient defines `B32, B64` and `B80` are predefined sizes of this template.
+The first allocates in the HEAP the specified size. The second copies the string to buffer and is the 2nd argument is given, allocates such buffer size. 
+  
+The third is a TEMPLATE of specified size allocating memory in the stack. If the argument `string` is given, the buffer is initialized with it; otherwise the buffer is initialized to 'empty'. The convenient defines `B32, B64` and `B80` are predefined sizes of this template.
+
+**NOTE:** When an initial string is provided (in the 2nd and 3rd case), if the first character is '@', then diagnostic messages are printed by the constructor and destructor.
 
 All class methods ensure that the specified size is not exceeded.
 
