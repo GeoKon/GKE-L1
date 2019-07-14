@@ -1,16 +1,18 @@
 //#define TEST1       // simplest ONE sensor
 //#define TEST2       // explicit error check
-#define TEST3       // 2-sensors
-//#define TEST4       // simulation toggle
+//#define TEST3       // 2-sensors
+#define TEST4       // simulation toggle
 
 #include <cpuClass.h>
-#include <timeClass.h>
+//#include <timeClass.h>
+#include <ticClass.h>
 
 #include <OneWire.h>
 #include <ds18Class.h>
 
 CPU cpu;
-ModuloTic tic(2);       // one tic per second
+//ModuloTic tic(2);       // one tic per second
+TICsec      tic(2);       // one tic per second
     
 OneWire  ds(4);         // on pin D2 of the NodeMCU. Use 10k Pull-up!
 DS18 temp( &ds );       // associate DS18B20 class with OneWire
@@ -81,7 +83,7 @@ void setup()
     cpu.init();
     temp.search( true );               // look for 3-devices with debug enabled
     
-    PR("Press button to toggle simulation");
+    PRN("Press button to toggle simulation");
 }
 void loop() 
 {
@@ -94,12 +96,12 @@ void loop()
         if( toggle ) 
         {
             temp.simulF( 100.0 );
-            PR("Simulation ON");
+            PRN("Simulation ON");
         }
         else  
         {
             temp.simulOff();
-            PR("Simulation OFF");
+            PRN("Simulation OFF");
         }
         toggle = !toggle;
     }

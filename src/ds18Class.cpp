@@ -1,7 +1,6 @@
-#include "cpuClass.h"
-#include "ds18Class.hpp"
+#include "macros.h"
+#include "ds18Class.h"
 #include <OneWire.h>
-
 
 int DS18::search( bool debug )
 {
@@ -181,35 +180,4 @@ void DS18::simulOff()
 {
     simulON = false;
     simTemp = INVALID_TEMP;
-}
-//-------------------------------------------------------------------
-
-FLT::FLT( int mxids )
-{
-    if( mxids > MAX_FILTER_IDs )
-        mxids = MAX_FILTER_IDs;
-    maxids = mxids;
-    setCoef( 0.0 );
-}
-void FLT::setCoef( float co )
-{
-    coef = co;
-    for( int i=0; i<maxids; i++ )
-        started[i]=false;
-}
-float FLT::smooth( int id, float value )
-{
-    if( started[id] )
-    {
-        return smoothed[ id ] = coef * smoothed[ id ] + (1.0-coef) * value;
-    }
-    else
-    {
-        started[id] = true;
-        return smoothed[ id ] = value;
-    }
-}
-float FLT::getValue( int id )
-{
-    return smoothed [ id ];
 }
