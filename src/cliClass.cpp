@@ -112,7 +112,7 @@
 		{
 			CMDTABLE *row = table[ i ];
 			for( int j=0; row->cmd ; j++, row++ )
-				PF( "%s\t%s\r\n", row->cmd, row->help );
+				PF( "\t%s\t%s\r\n", row->cmd, row->help );
 		}
 	}
 	// void EXE::getTables( char *prompt, Buf &bf )
@@ -222,11 +222,15 @@
 	}
 	void EXE::dispatchBuf( char *s, BUF &result )    
 	{
+		EXE::dispatchBufPtr( s, &result );  
+	}
+	void EXE::dispatchBufPtr( char *s, BUF *resptr )    
+	{
 		#ifdef DONT_DEPRECATE
-		respbf = result.c_str();
-		respsz = result.size();		// not really used
+		respbf = resptr->c_str();
+		respsz = resptr->size();	// not really used
 		#endif
-		result.init();			 	// insert EOS since we start from the beginning
+		resptr->init();			 	// insert EOS since we start from the beginning
 		
 		strncpy( temp, s, MAX_INPCMD-1 );			
 		temp[ MAX_INPCMD-1 ] = 0;
@@ -247,14 +251,14 @@
 			  if( strcmp( row->cmd, cmnd ) == 0 )
 			  {
 				char *savetok0 = token[0];			// save token 0
-				token[0] = (char *) (&result);		// replace token 0 with BUF
+				token[0] = (char *) resptr;			// replace token 0 with BUF
 				(*row->func)( ntokens, token );
-				token[0] = cmnd; //savetok0;				// restore token 0
+				token[0] = cmnd; //savetok0;		// restore token 0
 				return;
 			  }
 			}
 		}
-		result.set( "[%s] not found\r\n", cmnd );
+		resptr->set( "[%s] not found\r\n", cmnd );
 	}
 	
 	void EXE::help( int n, char *arg[] )
