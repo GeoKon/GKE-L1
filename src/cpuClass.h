@@ -29,7 +29,8 @@
 		void init(  int baud=115200, int ledp=LED+NEGATIVE_LOGIC, int button=BUTTON+NEGATIVE_LOGIC );
 		void blink( int times );
 		void led( onoff_t onoff, int times=1 ); // defines a led
-
+		void toggleEvery( uint32_t ms );		// toggles LED. Non-blocking
+		
 		bool button();
 		bool buttonPressed();     // true if button is pressed and released
 

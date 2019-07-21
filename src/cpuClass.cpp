@@ -30,6 +30,19 @@
         delay(200);
       }
     } 
+	void CPU::toggleEvery( uint32_t ms )
+    {
+    // Call repeately. Does not block. Blinks ms-ON, ms-OFF.
+		static uint32_t T0=0;
+        static bool toggle = false;
+        
+        if( millis()-T0 > ms )     // most likely true the first time
+        {
+            toggle = !toggle;
+            led( (onoff_t) toggle );
+            T0 = millis();          
+        }
+    }
     void CPU::led( onoff_t onoff, int times ) // defines a led
     {
       if( onoff == 2 )
