@@ -8,8 +8,8 @@
 
 // ------- DEFAULT HARDWARE DEFINITIONS FOR NodeMCU -------------------------------
 
-    #define LED             16       // PIN1 D0 GPIO16    NEGATIVE LOGIC
-    #define BUTTON           0       // PIN4 D3 GPIO0 (also push-button)
+    #define NODEMCU_LED             16       // PIN1 D0 GPIO16    NEGATIVE LOGIC
+    #define NODEMCU_BUTTON           0       // PIN4 D3 GPIO0 (also push-button)
 
 	#define NEGATIVE_LOGIC 0x8000
 	#define POSITIVE_LOGIC 0
@@ -26,7 +26,7 @@
 	{
 	public:
 
-		void init(  int baud=115200, int ledp=LED+NEGATIVE_LOGIC, int button=BUTTON+NEGATIVE_LOGIC );
+		void init(  int baud=115200, int ledp=NODEMCU_LED+NEGATIVE_LOGIC, int button=NODEMCU_BUTTON+NEGATIVE_LOGIC );
 		void blink( int times );
 		void led( onoff_t onoff, int times=1 ); // defines a led
 		void toggleEvery( uint32_t ms );		// toggles LED. Non-blocking

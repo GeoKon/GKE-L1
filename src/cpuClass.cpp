@@ -45,10 +45,10 @@
     }
     void CPU::led( onoff_t onoff, int times ) // defines a led
     {
-      if( onoff == 2 )
+	  if( onoff == 2 )
         blink( times );      
       else // onoff is either 0 or 1
-        digitalWrite( ledpin&0x7FFF, (ledpin & NEGATIVE_LOGIC) ? !onoff: onoff );
+        digitalWrite( ledpin & 0x7FFF, (ledpin & NEGATIVE_LOGIC) ? !onoff: onoff );
     }  
     bool CPU::button()
     {
@@ -138,7 +138,7 @@
 		bool flip;
 		for(;;)
 		{
-			digitalWrite( LED, flip );
+			digitalWrite( NODEMCU_LED, flip );
 			if( flip ) flip=false; else flip=true;
 			//ESP.wdtDisable();
 			//ESP.wdtFeed();
