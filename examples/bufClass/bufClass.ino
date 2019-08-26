@@ -22,6 +22,11 @@ void setup()
     int loops = 0;  
     char t[40];
     
+    B80(x); // define BUF x in the stack
+    x.set("Starting (BUF in the stack)");
+    x.print("See it: ");
+    PFN("See it again %s", x_str );
+    
     for( int i=0;;i++)
     {
         if( i==0 )
@@ -39,11 +44,11 @@ void setup()
         PF("You entered: %s\r\n", xp );
     
         SHOW;
-        MYBUF c( "@C", 100 );
+        MYBUF c( 100, "@C" );
         SHOW;
-        MYBUF x( "@X", 200 );
+        MYBUF x( 200, "@X" );
         SHOW;
-        MYBUF y( "@Y", 300 );
+        MYBUF y( 300, "@Y" );
         SHOW;
         y.~MYBUF();
         SHOW;
@@ -56,7 +61,7 @@ void setup()
 
         xp = cpu.prompt( "\r\n2. Enter something again (<64): " );
 
-        MYBUF b( "@B", 100 ); 
+        MYBUF b(  100, "@B" ); 
         SHOW;
         b.set( xp );
         b.print("You entered: ");
@@ -66,7 +71,7 @@ void setup()
         // --------------------- Section 3 -------------------------
 
         xp = cpu.prompt( "\r\n3. Enter something again (<100): " );
-        MYBUF s( "@S", 1000 );
+        MYBUF s( 1000, "@S" );
         SHOW; 
         s.set( xp );
         s.print("You entered: ");
