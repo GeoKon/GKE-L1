@@ -286,6 +286,46 @@
 			}
 		}
 	}
+	void EXE::brief( int n, char *arg[] )
+	{
+		char *mask;
+		BUF *bp = (BUF *)arg[0];
+		mask = (n<=1) ? (char *)"" : arg[1];
+		
+		int L=0;	// counts number of cmd printed
+		
+		for( int i=0; i<ntables; i++)
+		{
+			CMDTABLE *row = table[ i ];
+			
+			for( int j=0; row->cmd ; j++, row++ )
+			{
+				if( (strncmp( row->cmd, mask, strlen(mask)) == 0) || (*mask==0) )
+				{
+					if( bp==NULL )
+					{
+						PF     ( "%7s ", row->cmd );
+						if( (L%10)==9 )					// print CRLF every 8
+							PF( "\r\n");
+					}
+					else
+					{
+						bp->add( "%7s ", row->cmd );
+						if( (L%10)==9 )
+							bp->add( "\r\n");
+					}
+					L++;
+				}
+			}
+		}
+		if( (L%10) != 0 )		// print a final CRLF if not already printed
+		{
+			if( bp==NULL )
+				PF     ( "\r\n" );
+			else
+				bp->add( "\r\n" );		
+		}
+	}
 
 char *missingArgs  = "ERROR: Missing arguments!\r\n";
 char *bufferedOnly = "ERROR: This command can only be used in buffered mode!\r\n";
