@@ -5,7 +5,7 @@
  *
  * Use eepGlobal.ino (in Lib2) as a model to write main setup()
  */
-#define TEST 3
+#define TEST 2
 /*
  * Sketch uses 283960 bytes (27%) of program storage space. Maximum is 1044464 bytes.
  * Global variables use 30332 bytes (37%) of dynamic memory, leaving 51588 bytes for local variables. Maximum is 81920 bytes.
@@ -13,7 +13,7 @@
  */
 #include "cpuClass.h"
 #include "eepClass.h"   
-#include "serClass.h" 
+#include "nmpClass.h" 
 #include <FS.h>
 
 // ------------------- allocation of base classes ------------------------------
@@ -23,34 +23,32 @@
 
 #if TEST > 1
     
-    SER ser;    
+    NMP nmp;    
     class Global
     {
     public:    
+
         float f1;
         float f2;
         int i1;
-        char cp[20];
-
+        char cp[USER_STR_SIZE];
+        
+        #define MPARM_SIZE   3*4+USER_STR_SIZE
+        
         void init()
         {
             f1=4.56;
             f2=123.0;
             i1=10;
             strcpy( &cp[0], "ABCDabcd");
-        }
+        }        
         void install()
         {
-            ser.resetRegistry();
-            ser.registryStatus("0");
-            ser.registerParm( "f1", 'f', &f1, "=%4.2f Volts");
-            ser.registryStatus("After f1");
-            ser.registerParm( "f2", 'f', &f2 );
-            ser.registryStatus("After f2");
-            ser.registerParm( "i1", 'd', &i1 );
-            ser.registryStatus("After i1");
-            ser.registerParm( "cp", 's', &cp[0] );
-            ser.registryStatus("After cp");
+            nmp.resetRegistry();
+            nmp.registerParm( "f1", 'f', &f1, "Volts");
+            nmp.registerParm( "f2", 'f', &f2 );
+            nmp.registerParm( "i1", 'd', &i1 );
+            nmp.registerParm( "cp", 's', &cp[0] );
         }
     } my;
     
@@ -76,8 +74,6 @@ void setup()
 
             eep.initWiFiParms();                    // use the defaults
             eep.printWiFiParms("--- See Wifi");
-
-
         }
         else if( c == 'f' )
         {
@@ -114,47 +110,42 @@ void setup()
     
     for(;;)
     {
-        char *s = cpu.prompt( "\r\nPress i=initialize, p=print, m=modify, e=encode: " );
+        char *s = cpu.prompt( "\r\nPress i=initialize, p=print, m=modify, o=mod again: " );
         char c = s[0];
         PF("\r\n");
         if( c == 'i' )          // initialize parms
         {
             my.init();
             my.install();
-            ser.printParms("--- See initialized parms");
+            nmp.printAllParms("--- See initialized parms");
         }
         else if( c == 'p' )     // print parms
         {
-            ser.printParms("--- See parms");
+            nmp.printAllParms("--- See parms");
         }
         else if( c == 'm' )
         {
             float fv = 20.30;
-            ok = ser.setParmValue( "f1", &fv );
+            ok = nmp.setParmValue( "f1", &fv );
             PF( "f1=%f (ok:%d)\r\n", fv, ok );
 
             int  iv = 20;
-            ok = ser.setParmValue( "i1", &iv );
+            ok = nmp.setParmValue( "i1", &iv );
             PF( "i1=%d (ok:%d)\r\n", iv, ok );
 
-            ok = ser.setParmValue( "cp", (void *)"NEW" );
+            ok = nmp.setParmValue( "cp", (void *)"NEW" );
             PF( "cp=%s (ok:%d)\r\n", "NEW", ok );
-        }
-        else if( c == 'e' )
-        {
-            byte buf[200];
-            ser.encodeParms( buf, sizeof buf );
-            ser.printBuf("See encoded buffer", buf );
 
+            eep.saveUserStruct( (byte *)&my.f1, MPARM_SIZE );
+            nmp.printAllParms("--- Saved parms parms");
+        }
+        else if( c == 'o' )
+        {
             my.f1 = 1.0;
             my.f2 = 2.0;
             my.i1 = 3;
-            ser.printParms("--- Modified parms");
-            
-            ok = ser.decodeParms( buf );
-            PF( "Parms decoded (ok:%d)\r\n", ok );            
-
-            ser.printParms("--- See decoded parms");
+            eep.saveUserStruct( (byte *)&my.f1, MPARM_SIZE );
+            nmp.printAllParms("--- Updated parms parms");
         }
     }        
 }
@@ -166,7 +157,6 @@ void setup()
     cpu.init();
     SPIFFS.begin();                     // crashes sometimes if not present
     int e, ok;
-    byte buf[200];
     
     for(;;)
     {
@@ -178,10 +168,7 @@ void setup()
         {
             my.init();
             my.install();
-            ser.printParms("--- See initialized parms");
-
-            ser.encodeParms( buf, sizeof buf );
-            ser.printBuf("--- See encoded buffer", buf );
+            nmp.printAllParms("--- See initialized parms");
 
             eep.initHeadParms();
             eep.printHeadParms("--- See head");
@@ -189,7 +176,7 @@ void setup()
             eep.initWiFiParms();
             eep.printWiFiParms("--- See Wifi");
 
-            eep.saveUserStruct( buf, ser.nbytes );
+            eep.saveUserStruct( (byte *)&my.f1, MPARM_SIZE );
             eep.printHeadParms("--- See updated header");
         }
         else if( c == 'r' )
@@ -198,20 +185,16 @@ void setup()
             my.f1 = 1.0;
             my.f2 = 2.0;
             my.i1 = 3;
-            ser.printParms("--- See user parms");
+            nmp.printParms("--- See user parms");
         }
         else if( c == 'f' )
         {
             eep.fetchHeadParms();
             eep.printHeadParms("--- Fetched Head parms");
 
-            eep.fetchUserStruct( buf, sizeof buf );
-            ser.printBuf("--- See fetched buffer", buf );
+            eep.fetchUserStruct( (byte *)&my.f1, MPARM_SIZE );
 
-            ok = ser.decodeParms( buf );
-            PF( "Parms decoded (ok:%d)\r\n", ok );            
-
-            ser.printParms("--- See decoded parms");
+            nmp.printAllParms("--- See decoded parms");
         }
     }
 }
