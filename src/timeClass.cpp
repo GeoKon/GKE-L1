@@ -157,26 +157,26 @@ int TIME::getTime( mask_t type )
 String TIME::getTimeString( void )
 {
   //String s("",40);
-  B64 s;
+  B64(s);
   s.set( "%02d:%02d:%02d", hours, minutes, seconds );
-  return String( !s );
+  return String( s.c_str() );
 }
 String TIME::getDateString( void )
 {
   //String s("",40);
-  B64 s;
+  B64(s);
   s.set( "%02d/%02d/%02d", month, mday, year );
-  return String(!s);
+  return String( s.c_str() );
 }
 String TIME::getDateVerbose( void )
 {
-  B64 s;  
+  B64(s); 
   s.set( "%s %s %02d, %4d", 
     weekdstr[ wday >6  ?6 :wday  ],
     monthstr[ month>12 ?12:month ],
     mday,
     year );
-  return String (!s );
+	return String( s.c_str() );
 }
 
 //--------------------------------- PRIVATE ROUTINES -----------------------------------
