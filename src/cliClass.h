@@ -62,6 +62,7 @@ public:
 	void registerTable( CMDTABLE *t );
 	void printTables( char *prompt = "" );
 	void help( int n, char *arg[] );
+	void brief( int n, char *arg[] );
 		
 	void dispatchConsole( char *s  );			// must use printf()
 	void dispatchBuf( char *s, BUF &result );	// to be reprecated
