@@ -3,6 +3,7 @@
 // See eepClass.md for use
 
 #include "macros.h"
+#include "bufClass.h"
 #include <EEPROM.h>
 
 #define EEP_MAGIC ('K'*256+'O')
@@ -56,12 +57,14 @@ public:
     int fetchHeadParms();			// fetches to memory; assumes consistent structures. Returns error code
     int fetchWiFiParms();
 	
-	String getHeadString();
+	String getHeadString();			// to be reprecated. Use printHeadParms() instead
 	String getWiFiString();
 	
-	void printHeadParms( char *prompt="" );			// prints the structure data. Does not fetch()
-	void printWiFiParms( char *prompt="" );
+	void printHeadParms( char *prompt="", BUF *bp=NULL );	// prints the structure data. Does not fetch()
+	void printWiFiParms( char *prompt="", BUF *bp=NULL );
+	void printMgnWiFiParms( char *channel="" );
 	
+	bool setWiFiParm( char *name, char *value );		// Sets and saves a WiFi parm. Returns true or false
 	int notify( char *s );
 };
 

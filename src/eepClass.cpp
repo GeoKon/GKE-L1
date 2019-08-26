@@ -1,3 +1,4 @@
+#include <ESP8266WiFi.h> // only needed for RRI()
 #include <string.h>
 #include "bufClass.h"
 #include "eepClass.h"
@@ -112,30 +113,80 @@
     }
     String EEP::getHeadString()
     {
-        BUFT <256> s;
+        B128( s );
 		s.set("Magic:%04x, Head_sz:%d, User_sz:%d, Boot_count:%d\r\n", 
                 head.magic, head.headN, head.userN, head.reboots );
-		return String( !s );
+		return String( s.c_str() );
     }
     String EEP::getWiFiString()
     {
-		BUFT <256> s;
+		B128( s );
 		s.set("SSID:%s, ", 	 &wifi.ssid[0] );
 		s.add("PWD:%s, ", 	 &wifi.pwd[0] );
 		s.add("stIP:%s, ", 	 &wifi.stIP[0] );
 		s.add("Port:%d\r\n", wifi.port );
-		return String( !s );
+		return String( s.c_str() );
     }
-	void EEP::printHeadParms( char *prompt )
-	{
-		if( *prompt )
-            PF( "%s\r\n", prompt );
-		PR( getHeadString() );
-	}
-	void EEP::printWiFiParms( char *prompt )
-	{
-		if( *prompt )
-            PF( "%s\r\n", prompt );
-		PR( getWiFiString() );
-	}
+	void EEP::printHeadParms( char *prompt, BUF *bp )
+	{		
+		const char *hformat = "Magic:%04x, Head_sz:%d, User_sz:%d, Boot_count:%d\r\n";
 
+		if( *prompt )
+            PF( "%s\r\n", prompt );
+		if( bp==NULL )
+			PF( hformat, head.magic, head.headN, head.userN, head.reboots );
+		else
+			bp->add( hformat, head.magic, head.headN, head.userN, head.reboots );
+	}
+	void EEP::printWiFiParms( char *prompt, BUF *bp )
+	{		
+		const char *wformat = "SSID:%s, PWD:%s, StIP=%s, Port:%d, RSSI:%d\r\n";	
+		if( *prompt )
+            PF( "%s\r\n", prompt );
+		if( bp==NULL )
+			PF( wformat, &wifi.ssid[0], &wifi.pwd[0], &wifi.stIP[0], wifi.port, WiFi.RSSI() );
+		else
+			bp->add( wformat, &wifi.ssid[0], &wifi.pwd[0], &wifi.stIP[0], wifi.port, WiFi.RSSI() );
+	}
+	void EEP::printMgnWiFiParms( char *channel )
+	{
+		char *mformat;
+		if( *channel )
+			mformat = "{TABLE:%s|SET|%s|";
+		else
+			mformat = "%s{TABLE|SET|%s|";
+
+		PF( mformat, channel,"reboots");PF( "%d| }\r\n", head.reboots );
+		PF( mformat, channel, "ssid");	PF( " |%s}\r\n", wifi.ssid );
+		PF( mformat, channel, "pwd");	PF( " |%s}\r\n", wifi.pwd );
+		PF( mformat, channel, "staticIP");	PF( " |%s}\r\n", wifi.stIP );
+		PF( mformat, channel, "port");	PF( "%d| }\r\n", wifi.port );		
+	}
+	bool EEP::setWiFiParm( char *name, char *value )
+	{
+		bool ok = true;
+		
+		if( *value == '*' )			// This corresponds to "" blank
+			*value=0;
+			
+		if( strcmp(name, "ssid")==0 )
+			strncpy( wifi.ssid, value, 16 );
+		else if( strcmp(name, "pwd")==0 )
+			strncpy( wifi.pwd, value, 16 );
+		else if( strcmp(name, "staticIP")==0 )
+			strncpy( wifi.stIP, value, 16 );
+		else if( strcmp(name, "port")==0 )
+			wifi.port = atoi( value );
+		else if( strcmp(name, "reboots")==0 )
+		{
+			head.reboots = atoi(value);
+			saveHeadParms();			// saves memory structures to eeprom
+			return true;
+		}	
+		else
+			ok = false;
+		
+		if( ok )
+			saveWiFiParms();
+		return ok;
+	}
