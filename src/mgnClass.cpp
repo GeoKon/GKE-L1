@@ -2,7 +2,8 @@
 #include <mgnClass.h>
 
 // Convenient macro to save into the BUF buf if initialized
-#define BSAVE( format, ...) if(bpnt) bpnt->add( format, ##__VA_ARGS__ )
+#define BSAVE( format, ...) if(bpnt) bpnt->add( format, ##__VA_ARGS__ ); \
+                            else PF( format, ##__VA_ARGS__ )
 
 	MGN::MGN() 
     { 
@@ -11,13 +12,20 @@
 		channel[0]=0;
     }
 	// provide a BUF sufficient to accumulate all responses back to caller
-    void MGN::init( BUF *bp, const char *chan )
+    void MGN::init( const char *chan )
     {
-		bpnt = bp;			// set the pointer for all functions
-        bpnt->init();		// initialize buffer
-		idx = 0;			// number of bytes written
-		
-		if( *chan )
+		init( NULL, chan );
+    }
+	
+	void MGN::init( BUF *bp, const char *chan )
+    {
+		if( bp )
+		{
+			bpnt = bp;			// set the pointer for all functions
+			bpnt->init();		// initialize buffer
+			idx = 0;			// number of bytes written
+		}
+		if( (chan!=NULL)  && *chan )
 			sprintf( channel, ":%s", chan );
 		else
 			channel[0] = 0;
@@ -87,7 +95,6 @@
     //
     void MGN::controlSetText( const char *cname, const char *value ) // text box
     {
-//      bpnt->add( "{UI%s|SET|%s.Text=%s}\r\n", channel, cname, value );
 		BSAVE("{UI%s|SET|%s.Text=%s}\r\n", channel, cname, value); 
     }
     void MGN::controlSetValue( const char *cname, float value )
@@ -110,16 +117,23 @@
      
     void MGN::clear()
     {
-		bpnt->init();
+		if( bpnt )
+			bpnt->init();
     }
     char *MGN::getBuf()
     {
-    	return bpnt->c_str();
+    	if( bpnt )
+			return bpnt->c_str();
+		else
+			return "";
     }
     void MGN::print()
     {
-    	bpnt->print();
-		if( bpnt->length() > (bpnt->size()-10) )
-			PFN("Insufficient buffer size (used=%d, max=%d)", bpnt->length(), bpnt->size() );			
+    	if( bpnt )
+		{
+			bpnt->print();
+			if( bpnt->length() > (bpnt->size()-10) )
+				PFN("Insufficient buffer size (used=%d, max=%d)", bpnt->length(), bpnt->size() );			
+		}
     }
 

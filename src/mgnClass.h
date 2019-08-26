@@ -1,3 +1,14 @@
+/*
+
+## 					MegunoLink Interface
+
+- use `mgn.init()` with NULL BUF to enable direct console PF()
+- use non NULL BUF to accumulate commands; then use `mgn.print()` to print them
+
+##### Source code is shown below
+
+```
+*/
 #pragma once
 #include "bufClass.h"
 
@@ -11,6 +22,7 @@ public:
 	MGN(); 
 
 	// provide a BUF sufficient to accumulate all responses back to caller
+	void init( const char *chan = "" );
     void init( BUF *bp, const char *chan = "" );
 
     // ------------------- TABLES -------------------------------------
@@ -40,3 +52,6 @@ public:
     char *getBuf();
     void print();
 };
+/*
+```
+*/
