@@ -58,7 +58,7 @@ public:
 	
 	int 	getParmType ( const char *pname );
 	int 	getParmIndex( const char *pname );
-	B80 	getParmString( int ind );
+	BUF 	getParmString( int ind );
 	
  	bool encodeParms( byte *p, int maxsiz, int np = MAX_USERPARMS );
 	bool decodeParms( byte *p );
