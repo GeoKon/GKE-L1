@@ -7,6 +7,11 @@
 void setup()
 {
     cpu.init();
+    PF("Press button\r\n");
+}
+void setup1()
+{
+    cpu.init();
     PF( "[%d] Heap now %ld (max=%ld)\r\n", __LINE__, cpu.heapUsedNow(), cpu.heapUsedMax() );
     
     for(;;)
@@ -42,4 +47,10 @@ void loop()
         PF( "Count = %d\r\n", count++ );
     if( count > 10 )
         cpu.die("happy!", 3 );
+}
+void loop1()
+{
+    int k;
+    if( k = cpu.buttonReady() )
+        PF( "KEY = %d\r\n", k );
 }
