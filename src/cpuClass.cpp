@@ -54,37 +54,74 @@
     {
       return (btnpin & NEGATIVE_LOGIC) ? !digitalRead( btnpin&0x7FFF ) : digitalRead( btnpin&0x7FFF );
     }   
-    bool CPU::buttonPressed()     // true if button is pressed and released
+/*
+	bool CPU::buttonPressReady()
     {
         static bool justpressed = false;
-        if( !justpressed )
+
+        if( button() && (!justpressed) )
         {
+            led( ON );
+            delay( 20 );                                // debounce
             if( button() )
             {
-                led( ON );
                 justpressed = true;
+				return true;    
             }
-            return false;
         }
-        else // if( justpressed )
+        else // either justpressed, or !button...       // wait until depressed
         {
-            if( button() )  	// continuing pressed
-                return false;
-            justpressed = false;
-            led( OFF );
-            return true;        // released
-        }   
+            if( !button() )
+            {
+                justpressed = false;
+                led( OFF );
+            }
+        }
+        return false;
     }
-    // Buf CPU::prompt( char *prmpt )
-    // {
-        // Buf t(80);      // allocation of 80-bytes
-        // PN( prmpt );
-        // Serial.setTimeout( -1 );
-        // size_t n = Serial.readBytesUntil( '\r', t.pntr, 79);
-        // t.pntr[n] = 0;
-        // PR("");
-        // return t;       // buffer is deallocated after exit
-    // }
+*/
+	bool CPU::buttonPressed( onoff_t L )
+	{
+		return buttonReady( 500, L )==1;
+	}
+	int CPU::buttonReady( uint32 tmlong, onoff_t L )	
+    {
+        static bool justpressed = false;
+		static unsigned long T1;
+		
+        if( button() && (!justpressed) )
+        {
+            if( L==USE_LED ) led( ON );
+            delay( 20 );                                // debounce
+            if( button() )
+            {
+                justpressed = true;
+                T1 = millis();
+            }
+			return 1;
+        }
+		if( justpressed )					
+		{
+			if( button() )					// continue pressing?
+			{
+				if( millis()>T1+tmlong )
+					if( L==USE_LED ) led( OFF );
+			}
+			else							// button is released
+			{
+				delay( 10 );				// debounce again
+				if( !button() )
+				{	
+					justpressed = false;
+					if( L==USE_LED ) led( OFF );
+					int id = (millis()>T1+tmlong) ? 3 : 2;
+					return id;
+				}
+			}
+		}
+		return 0;
+    }
+
 	char * CPU::prompt( char *prmpt )
     {
         PR( prmpt );

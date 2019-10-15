@@ -10,7 +10,7 @@
 
     #define NODEMCU_LED             16       // PIN1 D0 GPIO16    NEGATIVE LOGIC
     #define NODEMCU_BUTTON           0       // PIN4 D3 GPIO0 (also push-button)
-
+	
 	#define NEGATIVE_LOGIC 0x8000
 	#define POSITIVE_LOGIC 0
 	#define MAX_PROMPT 80
@@ -19,6 +19,8 @@
 	{
 	  ON = 1,
 	  OFF = 0,
+	  NO_LED = 0,
+	  USE_LED = 1,
 	  BLINK = 2 
 	};	
 	
@@ -29,10 +31,21 @@
 		void init(  int baud=115200, int ledp=NODEMCU_LED+NEGATIVE_LOGIC, int button=NODEMCU_BUTTON+NEGATIVE_LOGIC );
 		void blink( int times );
 		void led( onoff_t onoff, int times=1 ); // defines a led
+		int getLedPin() {return ledpin;}
 		void toggleEvery( uint32_t ms );		// toggles LED. Non-blocking
 		
 		bool button();
-		bool buttonPressed();     // true if button is pressed and released
+	/*
+	Usage:
+		if( k = buttonReady() )
+			... use k=1, 2, 3
+		if( buttonReady()==1 )
+			... just button pressed down
+		if( buttonReady()>1 )
+			... just button up.
+	*/
+		bool buttonPressed( onoff_t = USE_LED );		
+		int buttonReady( uint32 tmlong = 1000, onoff_t = USE_LED );					// if key is pessed and released, returns 0, 1, 2
 
 		void die( char *prompt="Dead!", int times=1 );
 
