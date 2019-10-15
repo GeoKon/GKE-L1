@@ -51,7 +51,6 @@ void OLED::init( dsptype_t tp, const uint8_t* font )
   	m_font_width = pgm_read_byte(&m_font[0]);
   	m_size = tp;
     clearDisplay();
-	format=0; // default font is small
 }
 void OLED::initLarge()
 {
@@ -147,8 +146,6 @@ void OLED::setBrightness(unsigned char Brightness)
    sendCommand(Brightness);
 }
 
-
-
 void OLED::setTextXY(unsigned char row, unsigned char col)
 {
     sendCommand(0xB0 + row);                          //set page address
@@ -156,13 +153,12 @@ void OLED::setTextXY(unsigned char row, unsigned char col)
     sendCommand(0x10 + ((m_font_width*col>>4)&0x0F)); //set column higher addr
 }
 
-void OLED::displayOn(void)
+void OLED::displayOn( bool onoff )
 {
-  sendcommand(SSD1306_Display_On_Cmd);        //display on
-}
-void OLED::displayOff(void)
-{
-  sendcommand(SSD1306_Display_Off_Cmd);		//display off
+	if( onoff )
+		sendcommand(SSD1306_Display_On_Cmd);        //display on
+	else
+		sendcommand(SSD1306_Display_Off_Cmd);		//display off	
 }
 void OLED::clearDisplay()
 {
@@ -207,210 +203,6 @@ bool OLED::putChar(unsigned char ch)
     return 1;
 }
 
-#ifdef OLED_EXPANDED
-		void OLED::setHorizontalMode()
-		{
-			addressingMode = HORIZONTAL_MODE;
-			sendCommand(0x20);                      //set addressing mode
-			sendCommand(0x00);                      //set horizontal addressing mode
-		}
-
-		void OLED::setPageMode()
-		{
-			addressingMode = PAGE_MODE;
-			sendCommand(0x20);                      //set addressing mode
-			sendCommand(0x02);                      //set page addressing mode
-		}
-
-		void OLED::putString(const char *string)
-		{
-			unsigned char i=0;
-			while(string[i])
-			{
-				putChar(string[i]);     
-				i++;
-			}
-		}
-
-		void OLED::putString(String string)
-		{
-			char char_array[string.length()+1];
-			string.toCharArray(char_array, sizeof(char_array));
-			putString(char_array);
-		}
-
-		unsigned char OLED::putNumber(long long_num)
-		{
-		  unsigned char char_buffer[10]="";
-		  unsigned char i = 0;
-		  unsigned char f = 0;
-
-		  if (long_num < 0) 
-		  {
-			f=1;
-			putChar('-');
-			long_num = -long_num;
-		  } 
-		  else if (long_num == 0) 
-		  {
-			f=1;
-			putChar('0');
-			return f;
-		  } 
-
-		  while (long_num > 0) 
-		  {
-			char_buffer[i++] = long_num % 10;
-			long_num /= 10;
-		  }
-
-		  f=f+i;
-		  for(; i > 0; i--)
-		  {
-			putChar('0'+ char_buffer[i - 1]);
-		  }
-		  return f;
-
-		}
-
-		unsigned char OLED::putFloat(float floatNumber,unsigned char decimal)
-		{
-		  unsigned int temp=0;
-		  float decy=0.0;
-		  float rounding = 0.5;
-		  unsigned char f=0;
-		  if(floatNumber<0.0)
-		  {
-			putString("-");
-			floatNumber = -floatNumber;
-			f +=1;
-		  }
-		  for (unsigned char i=0; i<decimal; ++i)
-		  {
-			rounding /= 10.0;
-		  }
-			floatNumber += rounding;
-		  
-		  temp = floatNumber;
-		  f += putNumber(temp);
-		  if(decimal>0)
-		  {
-			putChar('.');
-			f +=1;
-		 }
-		  decy = floatNumber-temp;//decimal part, 
-		  for(unsigned char i=0;i<decimal;i++)//4 
-		  {
-			decy *=10;// for the next decimal
-			temp = decy;//get the decimal
-			putNumber(temp);
-			decy -= temp;
-		  }
-		  f +=decimal;
-		  return f;
-		}
-		unsigned char OLED::putFloat(float floatNumber)
-		{
-		  unsigned char decimal=2;
-		  unsigned int temp=0;
-		  float decy=0.0;
-		  float rounding = 0.5;
-		  unsigned char f=0;
-		  if(floatNumber<0.0)
-		  {
-			putString("-");
-			floatNumber = -floatNumber;
-			f +=1;
-		  }
-		  for (unsigned char i=0; i<decimal; ++i)
-		  {
-			rounding /= 10.0;
-		  }
-			floatNumber += rounding;
-		  
-		  temp = floatNumber;
-		  f += putNumber(temp);
-		  if(decimal>0)
-		  {
-			putChar('.');
-			f +=1;
-		 }
-		  decy = floatNumber-temp;//decimal part, 
-		  for(unsigned char i=0;i<decimal;i++)//4 
-		  {
-			decy *=10;// for the next decimal
-			temp = decy;//get the decimal
-			putNumber(temp);
-			decy -= temp;
-		  }
-		  f +=decimal;
-		  return f;
-		}
-
-		void OLED::drawBitmap(unsigned char *bitmaparray,int bytes)
-		{
-		  char localAddressMode = addressingMode;
-		  if(addressingMode != HORIZONTAL_MODE)
-		  {
-			  //Bitmap is drawn in horizontal mode     
-			  setHorizontalMode();
-		  }
-
-		  for(int i=0;i<bytes;i++)
-		  {
-			  sendData(pgm_read_byte(&bitmaparray[i]));
-		  }
-
-		  if(localAddressMode == PAGE_MODE)
-		  {
-			 //If pageMode was used earlier, restore it.
-			 setPageMode(); 
-		  }
-		  
-		}
-
-		void OLED::setHorizontalScrollProperties(bool direction,unsigned char startPage, unsigned char endPage, unsigned char scrollSpeed)
-		{
-		   if(Scroll_Right == direction)
-		   {
-				//Scroll right
-				sendCommand(0x26);
-		   }
-		   else
-		   {
-				//Scroll left  
-				sendCommand(0x27);
-
-		   }
-			sendCommand(0x00);
-			sendCommand(startPage);
-			sendCommand(scrollSpeed);
-			sendCommand(endPage);
-			sendCommand(0x00);
-			sendCommand(0xFF);
-		}
-
-		void OLED::activateScroll()
-		{
-			sendCommand(SSD1306_Activate_Scroll_Cmd);
-		}
-
-		void OLED::deactivateScroll()
-		{
-			sendCommand(SSD1306_Dectivate_Scroll_Cmd);
-		}
-
-		void OLED::setNormalDisplay()
-		{
-			sendCommand(SSD1306_Normal_Display_Cmd);
-		}
-
-		void OLED::setInverseDisplay()
-		{
-			sendCommand(SSD1306_Inverse_Display_Cmd);
-		}
-#endif
-
 static char b21( char c )
 {
   char d = 0;
@@ -425,147 +217,171 @@ static char b21( char c )
     d |= 0b11000000;
   return d;
 }
-void OLED::clearLine( int X, int Y )
+
+void OLED::clearRow( int X )
 {
-  for( int i=Y; (i<16) && (i>=0); i++ )
-	putChar(' ');
-  setTextXY( X, Y );
+	setTextXY( X, 0 );
+	for( int i=0; i<16; i++ )
+    {	    
+		for(int j=0;j<m_font_width;j++) 	//m_font_width
+			sendData( 0 );
+	}
 } 
 
-const char * OLED::display( int X, int Y, const char *string)
+const char * OLED::displayRow( int linecode, int X, const char *string )
 {
-    char data;
-    int col;
-    char *sp, *retp;
-     
-    setTextXY( X, Y);
-    sp = (char *)string;
-    retp = (*sp<' ')? sp+1 : sp;    // skip control character if there
-    
-    col = Y;
-    format = 0;                     // default format
+    const char *sp;					
+	char data;
+	char newlin[ 20 ];
+	
+	bool doubleline  = linecode & O_DOUBLE_LINE;
+	bool doublewidth = linecode & O_DOUBLE_WIDTH;
+	bool centered    = linecode & O_CENTERED;
+	bool singleline  = !(doubleline || doublewidth );
+	
+	sp = string;
+	
+	memset( newlin, ' ', 17 );  // create a blank line with spaces
+	int siz = strlen( sp );
+	int width = doublewidth ? 8 : 16;
+	
+	if( centered )
+	{
+		if( siz >=width )
+			strncpy( newlin, sp, width );
+		else					// if siz=12, 16-12=4, half each side
+			strncpy( newlin+(width-siz)/2, sp, siz );
+	}
+	else						// copy, but only valid chars to preserve the spaces
+		strncpy( newlin, sp, siz);
+	newlin[width] = 0;
+	
+    setTextXY( X, 0 );
+	sp = newlin;
     while( data = *sp++ )
     {
-      if( data < 0x20 )
-      {
-        switch( data )
+        for(int i=0;i<m_font_width;i++) 	//m_font_width
         {
-          default:
-          case '\a': format=0; break;
-          case '\v': format=1; break;
-          case '\b': format=2; break;
-          case '\r': clearLine( X, col ); 
-                      break;
+	      char ch = pgm_read_byte( &m_font[(data-32)*m_font_width+m_font_offset+i]); 
+		  if( doubleline )
+			  sendData( b21(ch) );
+		  if( doublewidth )
+			  sendData( b21(ch) );
+		  if( singleline )
+			  sendData( ch );
         }
-      }
-      else
-      {
-        for(int i=0;i<m_font_width;i++) //m_font_width
-        {
-//        char ch = pgm_read_byte(  myFont[data-0x20]                           +i);
-	      char ch = pgm_read_byte( &m_font[(data-32   )*m_font_width+m_font_offset+i]); 
-
-          
-          if( format == 1 )
-            sendData( b21(ch) );
-          else if( format == 2 )
-          {
-            sendData( b21(ch) );
-            sendData( b21(ch) );
-          }
-          else
-            sendData( ch );
-        }
-        col = (format==2)? col+2 : col+1;
-      }
     }
-    if( format <=0 )
-      return retp;
-
-    setTextXY(X+1, Y);
-    sp = (char *)string;
-    col = Y;
-    while( data = *sp++ )
+	if( doubleline )
     {
-      if( data < 0x20 )
-      {
-        if( data=='\r' )          // erase to end of this row
-          clearLine(X+1,col);
-      }
-      else
-      {
-        for(int i=0;i<m_font_width;i++)	
-        {
-//        char ch = pgm_read_byte( myFont[data-0x20]                        +i )>>4;
-          char ch = pgm_read_byte(&m_font[(data-32)*m_font_width+m_font_offset+i])>>4;
-          
-          if(format==1)
-            sendData( b21(ch) );
-          if(format==2)
-          {
-            sendData( b21(ch) );
-            sendData( b21(ch) );
-          }
-        }
-        col = (format==2)? col+2 : col+1;
-      }
-    }
-    return retp;
+		setTextXY(X+1, 0);
+		sp = newlin;;
+		while( data = *sp++ )
+		{
+			for(int i=0;i<m_font_width;i++)	
+			{
+			  char ch = pgm_read_byte(&m_font[(data-32)*m_font_width+m_font_offset+i])>>4;
+			  sendData( b21(ch) );
+			  if( doublewidth )
+				  sendData( b21(ch) );
+			}
+		}
+	}
+	return string;
 }
 
-//const char *OLED::display( int X, int Y, const char *string)
-//{
-//    setTextXY( X, Y);
-//    unsigned char i=0;
-//    int ch;
-//    
-//    while( (ch = string[i]))
-//    {
-//        putChar( ch );  // EQUIVALENT! 
-//        i++;
-//    }
-//    return string;
-//}
-const char *OLED::dsp( int X, int Y, const char *format, ... )
-{
-	va_list ap;
-	va_start( ap, format );
-	vsnprintf( temp, sizeof( temp ), format, ap );
-	va_end( ap );
-    return display( X, Y, temp );
-}
-const char *OLED::dsp( int X, const char *format, ... )
-{
-    va_list ap;
-    va_start( ap, format );
-    vsnprintf( temp, sizeof( temp ), format, ap );
-    va_end( ap );
-    
-    // center text on blank line
-    int siz = strlen( temp );   // length of the string to be displayed
-    char newlin[20];
-    memset( newlin, ' ', 17 );  // create a blank line with spaces
+	// no /a /b /v formating allowed here.
+	const char *OLED::dsp( int row, int col, const char *format, ... )
+	{
+		const char *format1 = format;
+		if( *format < 0x20 )	// ignore control codes
+			format1++;
+			
+		va_list ap;
+		va_start( ap, format );
+		vsnprintf( temp, sizeof( temp ), format, ap );
+		va_end( ap );
+		
+		setTextXY( row, col );
 
-    switch( temp[0] )
-    {
-            case '\a':          // single width characters
-            case '\v':
-                newlin[17] = 0;
-                strncpy( newlin+1+(16-siz+1)/2, temp+1, siz-1 );
-                newlin[0] = temp[0];
-                break;
-            
-            case '\b':          // double width
-                newlin[8] = 0;
-                strncpy( newlin+1+(8-siz+1)/2, temp+1, siz-1 );
-                newlin[0] = '\b';
-                break;
-            
-            default:            // assume \a or \v
-                newlin[16] = 0;
-                strncpy( newlin+(16-siz)/2, temp, siz );
-                break;
-    }
-    display( X, 0, newlin );
-    return format;
-}
+		char *sp = temp;
+		while( char data = *sp++ )
+		{
+			for(int i=0;i<m_font_width;i++) 	//m_font_width
+			{
+			  char ch = pgm_read_byte( &m_font[(data-32)*m_font_width+m_font_offset+i]); 
+			  sendData( ch );
+			}
+		}
+		return (const char *)temp;
+	}
+	
+	const char *OLED::dsp( control_t X )
+	{
+		switch( X )
+		{
+			case O_LED96:
+				init( OLED096 );
+				break;
+			case O_LED130:
+				init( OLED130 );
+				break;
+			case O_CLEAR:
+				clearDisplay();
+				break;
+			case O_BRIGHT0:
+				displayOn( false );
+				break;
+			case O_BRIGHT1:
+				displayOn();
+				setBrightness( 1 );	
+				break;
+			case O_BRIGHT2:
+				displayOn();
+				setBrightness( 128 );	
+				break;
+			case O_BRIGHT3:
+				displayOn();
+				setBrightness( 255 );	// 45, 90, ... 225
+				break;
+		}
+		sprintf( temp, "FUNC(%d)", (int) X );
+		return (const char*) temp;
+	}
+		
+	const char *OLED::dsp( int X, const char *format, ... )
+	{
+		if( *format == 0 )		// clear this row
+		{
+			clearRow( X );
+			return "FUNC(CLN)";
+		}
+		const char *format1 = format;
+		int code = 0;
+		if( *format == '\t' )
+		{
+			code |= O_CENTERED;
+			format1  = format+1;
+		}
+		switch( *format1 )
+		{
+			case '\v':
+				code |= O_DOUBLE_LINE;
+				format1++;
+				break;
+			case '\b':
+				code |= (O_DOUBLE_LINE + O_DOUBLE_WIDTH);
+				format1++;
+				break;
+			case '\a':
+				format1++;
+				break;
+		}			
+		va_list ap;
+		va_start( ap, format );
+		vsnprintf( temp, sizeof( temp ), format1, ap );
+		va_end( ap );
+	
+		return displayRow( code, X, (const char *)temp );
+	}
+
+// THERE IS A BUG IN DSP() ROW 0 or 2 when displaying \b
