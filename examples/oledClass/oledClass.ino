@@ -23,10 +23,10 @@ void setup()
   for( int br=0; br<255; br+=32 )
   {
     oled.setBrightness( br );
-    e(oled.dsp( 0, 0, "\aBright %d", br ));
+    e(oled.dsp( 0, "\aBright %d", br ));
     e(oled.dsp( 1, "\aCentered1" ));
     e(oled.dsp( 2, "\bBold2" ));
-    e(oled.dsp( 4, 0, "\vVERTLEFT4" ));
+    e(oled.dsp( 4, "VERTLEFT4" ));
     e(oled.dsp( 6, "\vVERTCENT6" ));
     delay( 1000 );
   }    
@@ -37,10 +37,10 @@ void setup()
     strncpy( temp+1, cpu.prompt("Enter string: "),19);       // get string in temp+1
     oled.clearDisplay();
 
-      temp[0] = '\a'; e(oled.dsp( 1, 0, temp ));
+      temp[0] = '\a'; e(oled.dsp( 1, temp ));
       e(oled.dsp( 0, 0, temp+1 ));
-      temp[0] = '\v'; e(oled.dsp( 3, 0, temp ));
-      temp[0] = '\b'; e(oled.dsp( 5, 0, temp ));
+      temp[0] = '\v'; e(oled.dsp( 3, temp ));
+      temp[0] = '\b'; e(oled.dsp( 5, temp ));
       delay( 4000 );
           
       temp[0] = '\a'; oled.dsp( 1, temp );
