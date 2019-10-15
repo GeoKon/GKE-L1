@@ -99,6 +99,11 @@
 		ntables = 0;
 		ntokens = 0;
 	}
+	void EXE::initTables()
+	{
+		ntables = 0;
+		ntokens = 0;
+	}
 	void EXE::registerTable( CMDTABLE *t )
 	{
 		if( ntables < MAX_TENTRIES )

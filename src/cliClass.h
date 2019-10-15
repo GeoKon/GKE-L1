@@ -58,7 +58,8 @@ private:
 class EXE
 {
 public:
-    EXE();									
+    EXE();
+	void initTables();
 	void registerTable( CMDTABLE *t );
 	void printTables( char *prompt = "" );
 	void help( int n, char *arg[] );
