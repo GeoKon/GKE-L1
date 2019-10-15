@@ -56,10 +56,15 @@ public:
     // Alternative#2 initialization
     int IIR::setStepsToTarget( int nsteps, int pctoftarget )
     {
-    	float logf = log2( 1.0 - ((float) pctoftarget)/100.0 );
-    	float alpha = pow( 2, logf/(nsteps+1) );
-    	setSmoothFactor( 1.0-alpha );
-       	PF("N=%d to settle %d%%, a=%f, k=%f\r\n", nsteps, pctoftarget, alpha, k );
+    	if( nsteps == 0 )							// bypass if nsteps is zero
+			setSmoothFactor( 1.0 );
+		else
+		{
+			float logf = log2( 1.0 - ((float) pctoftarget)/100.0 );
+			float alpha = pow( 2, logf/(nsteps+1) );
+			setSmoothFactor( 1.0-alpha );
+			PF("N=%d to settle %d%%, a=%f, k=%f\r\n", nsteps, pctoftarget, alpha, k );
+		}
 	}
 	// Reports steps required to settle
 	int IIR::getStepsToTarget( int pctoftarget )
