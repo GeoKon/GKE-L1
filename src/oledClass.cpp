@@ -319,7 +319,7 @@ const char * OLED::displayRow( int linecode, int X, const char *string )
 	{
 		switch( X )
 		{
-			case O_LED96:
+			case O_LED096:
 				init( OLED096 );
 				break;
 			case O_LED130:

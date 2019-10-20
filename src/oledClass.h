@@ -29,11 +29,12 @@
 enum dsptype_t		// used by oled.init()
 {
     SMALL = 0,
-    OLED091 = 0,    // SSD1306 128x32 oled
     LARGE = 1,
-    OLED096 = 1,    // SSD1306 128x64 oled
     BIG = 2,
-    OLED130 = 2     // SH1106 128x64 oled
+    
+	OLED091 = 0,    // SSD1306 128x32 oled
+	OLED096 = 1,    // SSD1306 128x64 oled
+	OLED130 = 2     // SH1106 128x64 oled
 };
 enum control_t		// used by oled.dsp()
 {
@@ -42,7 +43,7 @@ enum control_t		// used by oled.dsp()
 	O_BRIGHT1 = -3,
 	O_BRIGHT2 = -4,
 	O_BRIGHT3 = -5,
-	O_LED96   = -96,
+	O_LED096  = -96,
 	O_LED130  = -130
 };
 #define O_DOUBLE_LINE  1
