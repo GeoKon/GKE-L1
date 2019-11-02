@@ -157,9 +157,9 @@
 			mformat = "%s{TABLE|SET|%s|";
 
 		PF( mformat, channel,"reboots");PF( "%d| }\r\n", head.reboots );
-		PF( mformat, channel, "ssid");	PF( " |%s}\r\n", wifi.ssid );
-		PF( mformat, channel, "pwd");	PF( " |%s}\r\n", wifi.pwd );
-		PF( mformat, channel, "staticIP");	PF( " |%s}\r\n", wifi.stIP );
+		PF( mformat, channel, "ssid");	PF( "%s|Access Point}\r\n", wifi.ssid );
+		PF( mformat, channel, "pwd");	PF( "%s|wpa2-psk}\r\n", wifi.pwd );
+		PF( mformat, channel, "staticIP");	PF( "%s|if empty, use DHCP}\r\n", wifi.stIP );
 		PF( mformat, channel, "port");	PF( "%d| }\r\n", wifi.port );		
 	}
 	bool EEP::setWiFiParm( char *name, char *value )
