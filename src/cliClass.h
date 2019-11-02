@@ -65,9 +65,9 @@ public:
 	void help( int n, char *arg[] );
 	void brief( int n, char *arg[] );
 		
-	void dispatchConsole( char *s  );			// must use printf()
-	void dispatchBuf( char *s, BUF &result );	// to be reprecated
-	void dispatchBufPtr( char *s, BUF *resptr );
+	void dispatchConsole( const char *s  );			// must use printf()
+	void dispatchBuf( const char *s, BUF &result );	// to be reprecated
+	void dispatchBufPtr( const char *s, BUF *resptr );
 
 	#ifdef DONT_DEPRECATE
 	void respond( const char *format, ... );	// if cmdbf is NULL, uses printf()
