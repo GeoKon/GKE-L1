@@ -39,6 +39,7 @@ public:
 	BUF( int size, const char *label="" );	// labeled buffer
 	BUF( char *userstr, int size );			// user specified buffer. No alloc!
 	BUF( const char *userstr, int size );	// constant buffer copy. To be deprecated
+	
     ~BUF();
 	
     BUF & operator = ( const char *s );
