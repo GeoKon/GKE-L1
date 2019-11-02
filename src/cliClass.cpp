@@ -195,7 +195,7 @@
 		}	
 	}
 #endif
-	void EXE::dispatchConsole( char *s )  
+	void EXE::dispatchConsole( const char *s )  
 	{
 		#ifdef DONT_DEPRECATE
 		respbf = NULL;									// set bf and size to zero
@@ -225,11 +225,11 @@
 		}
 		PF( "[%s] not found\r\n", cmnd );
 	}
-	void EXE::dispatchBuf( char *s, BUF &result )    
+	void EXE::dispatchBuf( const char *s, BUF &result )    
 	{
 		EXE::dispatchBufPtr( s, &result );  
 	}
-	void EXE::dispatchBufPtr( char *s, BUF *resptr )    
+	void EXE::dispatchBufPtr( const char *s, BUF *resptr )    
 	{
 		#ifdef DONT_DEPRECATE
 		respbf = resptr->c_str();
