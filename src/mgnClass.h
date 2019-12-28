@@ -1,16 +1,22 @@
 /*
-
-## 					MegunoLink Interface
+					MegunoLink Interface
 
 - use `mgn.init()` with NULL BUF to enable direct console PF()
 - use non NULL BUF to accumulate commands; then use `mgn.print()` to print them
 
-##### Source code is shown below
-
-```
+	#define MGN_BUFFERED to enable buffering
+	Otherwise, this is "just as printf()"
 */
+
 #pragma once
 #include "bufClass.h"
+
+#ifdef MGN_BUFFERED
+	#define BSAVE( format, ...) if(bpnt) bpnt->add( format, ##__VA_ARGS__ ); \
+								else PF( format, ##__VA_ARGS__ )
+#else
+	#define BSAVE( format, ...) PF( format, ##__VA_ARGS__ )
+#endif
 
 class MGN
 {
@@ -19,7 +25,7 @@ class MGN
     char channel[32];		// used to store optional Meguno channel
 	
 public:    
-	MGN(); 
+	MGN( char *chn = "CONFIG" ); 
 
 	// provide a BUF sufficient to accumulate all responses back to caller
 	void init( const char *chan = "" );

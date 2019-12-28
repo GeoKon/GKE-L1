@@ -5,11 +5,11 @@
 #define BSAVE( format, ...) if(bpnt) bpnt->add( format, ##__VA_ARGS__ ); \
                             else PF( format, ##__VA_ARGS__ )
 
-	MGN::MGN() 
+	MGN::MGN( char *chn ) 
     { 
         idx = 0;
         bpnt = NULL;
-		channel[0]=0;
+		init( NULL, chn );
     }
 	// provide a BUF sufficient to accumulate all responses back to caller
     void MGN::init( const char *chan )
