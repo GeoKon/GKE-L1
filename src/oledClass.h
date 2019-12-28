@@ -46,6 +46,9 @@ enum control_t		// used by oled.dsp()
 	O_LED096  = -96,
 	O_LED130  = -130
 };
+#define BRIGHT(A) (control_t)(-A-2)	// define brightness 0...3
+
+#define O_CLEAR_ROW   ""
 #define O_DOUBLE_LINE  1
 #define O_DOUBLE_WIDTH 2
 #define O_CENTERED 	   4
