@@ -120,18 +120,6 @@
 				PF( "\t%s\t%s\r\n", row->cmd, row->help );
 		}
 	}
-	// void EXE::getTables( char *prompt, Buf &bf )
-	// {
-		// bf.init();
-		// if( *prompt )
-			// bf.add( "%s\r\n", prompt );
-		// for( int i=0; i<ntables; i++)
-		// {
-			// CMDTABLE *row = table[ i ];
-			// for( int j=0; row->cmd ; j++, row++ )
-				// bf.add( "%s\t%s\r\n", row->cmd, row->help );
-		// }
-	// }
 
 	// -------------------------------------------------------------------
 	// Generic tokenizer, Does not depend on privates of this class
@@ -148,53 +136,7 @@
 	  // PF("DONE\r\n");
 	  return nt;
 	}
-	
-	// if cmdbf is NULL, it uses printf()
-	// else, appends to buffer.
 
-#ifdef DONT_DEPRECATE
-	void EXE::respond( const char *fmt, ... )
-	{
-		va_list va;
-		va_start(va, fmt);
-		char buf[vsnprintf(NULL, 0, fmt, va) + 1];
-		vsprintf(buf, fmt, va);
-		va_end(va);
-		
-		va_list va;
-		va_start(va, fmt);
-		
-		if( (respsz==0) || (respbf == NULL) ) 
-		{							
-			vprintf( fmt, va );		// print directly. DOES NOT WORK IF MORE THAN ONE LINE
-		}
-		else
-		{							// buffer directly
-			char *p = respbf;
-			int N = strlen(p);		// current size of the buffer
-			
-			vsnprintf( p+N, respsz-N-1, fmt, va );	// append string
-			
-			*(respbf + respsz-1)=0;	// append EOS
-		}	
-		va_end(va);
-	}
-	// to be deprecated
-	void EXE::respondStr( const char *s )
-	{
-		if( (respsz==0) || (respbf == NULL) ) 
-			PR( s );
-		else
-		{							// buffer directly
-			char *p = respbf;
-			int N = strlen(p);		// current size of the buffer
-			
-			strncat( p, s, respsz-N-1 );	// append string
-			
-			*(respbf + respsz-1)=0;	// append EOS
-		}	
-	}
-#endif
 	void EXE::dispatchConsole( const char *s )  
 	{
 		#ifdef DONT_DEPRECATE
@@ -214,8 +156,9 @@
 		{
 			for( CMDTABLE *row=table[i]; row->cmd ; row++ )
 			{
-			  if( strcmp( row->cmd, cmnd ) == 0 )
+			  if( strcasecmp( row->cmd, cmnd ) == 0 )
 			  {
+				cmdhelp = row->help;				// save pointer to help
 				token[0]=NULL;							// flip token 0 to NULL
 				(*row->func)( ntokens, token );			// these functions use response()
 				token[0]=cmnd;
@@ -223,7 +166,7 @@
 			  }
 			}
 		}
-		PF( "[%s] not found\r\n", cmnd );
+		PF( "? [%s] not found\r\n", cmnd );
 	}
 	void EXE::dispatchBuf( const char *s, BUF &result )    
 	{
@@ -245,7 +188,7 @@
 		// for( int i=0; i<ntokens; i++ )
 			// PF("token[%d] = %s\r\n", i, token[i] );
 	
-		char *cmnd = token[0];
+		char *cmnd = token[0];		
 		if( (ntokens==0) || (*cmnd == 0) )			// empty command
 			return;
 		
@@ -253,19 +196,41 @@
 		{
 			for( CMDTABLE *row=table[i]; row->cmd ; row++ )
 			{
-			  if( strcmp( row->cmd, cmnd ) == 0 )
+			  if( strcasecmp( row->cmd, cmnd ) == 0 )
 			  {
+				cmdhelp = row->help;				// save pointer to help
 				char *savetok0 = token[0];			// save token 0
 				token[0] = (char *) resptr;			// replace token 0 with BUF
 				(*row->func)( ntokens, token );
-				token[0] = cmnd; //savetok0;		// restore token 0
+				token[0] = cmnd; 					// restore token 0
 				return;
 			  }
 			}
 		}
-		resptr->set( "[%s] not found\r\n", cmnd );
+		resptr->set( "? [%s] not found\r\n", cmnd );
 	}
-	
+	char *EXE::userCmd()
+	{
+		return temp;								// null terminated by the tokenizer
+	}
+	bool EXE::cmd1stUpper()							// true if meguno Cmd
+	{
+		return isupper( temp[0] );
+	}
+	bool EXE::missingArgs( int count ) 
+	{
+		char *format = "? Missing %d argument(s). Use %s %s\r\n";
+		if( ntokens <= count )
+		{
+			BUF *bp = (BUF *)token[0];
+			if( bp )
+				bp->add( format, count, temp, cmdhelp );
+			else
+				PF( format, count, temp, cmdhelp );			
+			return true;
+		}
+		return false;
+	}
 	void EXE::help( int n, char *arg[] )
 	{
 		char *mask;
@@ -284,9 +249,9 @@
 				if( (strncmp( row->cmd, mask, strlen(mask)) == 0) || (*mask==0) )
 				{	
 					if( bp==NULL )
-						PF     ( "\t%s\t%s}\r\n", row->cmd, row->help );
+						PF     ( "\t%s\t%s\r\n", row->cmd, row->help );
 					else
-						bp->add( "\t%s\t%s \r\n", row->cmd, row->help );
+						bp->add( "\t%s\t%s\r\n", row->cmd, row->help );
 				}
 			}
 		}
@@ -332,6 +297,7 @@
 		}
 	}
 
+// Deprecate the following!
 char *missingArgs  = "ERROR: Missing arguments!\r\n";
 char *bufferedOnly = "ERROR: This command can only be used in buffered mode!\r\n";
 
@@ -344,3 +310,4 @@ void errMissingArgs()
 {
     PR( missingArgs );
 }
+

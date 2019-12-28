@@ -69,16 +69,11 @@ public:
 	void dispatchBuf( const char *s, BUF &result );	// to be reprecated
 	void dispatchBufPtr( const char *s, BUF *resptr );
 
-	#ifdef DONT_DEPRECATE
-	void respond( const char *format, ... );	// if cmdbf is NULL, uses printf()
-	void respondStr( const char *s );			// else, stores into this buffer.
-	#endif
+	char *userCmd();							// returns pointer to user entered command
+	bool cmd1stUpper();							// true if Meguno cmd
+	bool missingArgs( int count );				// true if n<=count
 	
 private:
-	#ifdef DONT_DEPRECATE
-	char *respbf;					// set by dispatch. Used by handlers. NULL if Serial.printf()
-	int   respsz;					// if zero, user printf
-	#endif
 	
 	int ntables;					// number of table entries
 	CMDTABLE *table[MAX_TENTRIES];	// pointers to tables
@@ -87,20 +82,18 @@ private:
 	char *token[MAX_TOKENS];  		// pointers to tokens. All of them in the buffer below
 	    
 	char temp[ MAX_INPCMD ];		// temporary storage of user command line
+	char *cmdhelp;					// temporary storage of command help
 	
 	int tokenize( char *userbuf, char *mytok[], int mxtok  );	// generic
 };
 
+#define BINIT( Bp, Arg)	BUF *Bp = (BUF *)Arg[0]
+#define RESPOND( Bp, A, ... ) if( Bp ) Bp->add(A, ##__VA_ARGS__ ); else PF(A, ##__VA_ARGS__)
+
+// Deprecate the following!
 extern void errBufferedOnly();		// to be deprecated
 extern void errMissingArgs();		// to be deprecated
 extern char *missingArgs;
 extern char *bufferedOnly;
 
-#define BINIT(Bp,Arg) 			\
-	BUF *Bp = (BUF *)Arg[0]; 	\
-	if( !Bp ) 					\
-	{							\
-		PR( bufferedOnly );		\
-		return;					\
-	}
 
