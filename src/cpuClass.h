@@ -54,10 +54,20 @@
 		void heapUpdate();
 		uint32_t heapUsedMax();
 		uint32_t heapUsedNow();
-
+									
+		void swapSerialPri();
+		void swapSerialSec();
+		bool serialSwapped();
+		void flushRcv();
+		void setSecBaud( int baud, int pin=0 );
 	private:
 		int  ledpin;      			// top bit is 1 if negative logic
 		int  btnpin;
+		
+		int  oenpin;				// output enable pin for swap
+		bool pinswap;
+		int  pribaudrate;
+		int  secbaudrate;
 		
 		char temp[ MAX_PROMPT ];	// temp buffer used for prompts
 		uint32_t heapref;     		// heapsize after init();

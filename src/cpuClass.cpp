@@ -13,8 +13,13 @@
       pinMode( btnpin&0x7FFF, (btnpin & NEGATIVE_LOGIC) ? INPUT_PULLUP : INPUT );
 
       led( OFF );
-      Serial.begin( baud );
-      delay( 500 );
+      
+	  pribaudrate = secbaudrate = baud;
+	  Serial.begin( baud );
+      pinswap = false;
+	  oenpin  = 0;
+	  
+	  delay( 500 );
       blink(3);
       PRN("\r\nCPU initialized");
       heapref = ESP.getFreeHeap();
@@ -182,6 +187,64 @@
 			yield();
 			delay(200);
 		}
+	}
+	void CPU::flushRcv()					// flush receiving buffer
+    {
+        uint32 T0 = millis();
+        while( millis() < T0+10 )   		// 10ms flushing
+            if( Serial.available() )
+                Serial.read();            
+    }	
+	void CPU::setSecBaud( int baud, int oepin )
+	{
+		secbaudrate = baud;
+		oenpin = oepin;
+		if( oenpin > 0 )					// initialize port
+		{
+			pinMode( oenpin, OUTPUT ); 		// typically GPIO12 = D6. Used to OE the tranlator
+			digitalWrite( oenpin, (oenpin & NEGATIVE_LOGIC) ? HIGH : LOW );
+		}
+	}
+	void CPU::swapSerialSec()
+	{
+		if( pinswap )						// already in SEC
+			return;
+		pinswap = true;
+		Serial.flush();             		// empty Primary transmit buffer
+		
+		if( pribaudrate != secbaudrate )
+		{
+			Serial.end();                   // change baud rate
+			Serial.begin( secbaudrate );    // change baudrate to Primary
+		}
+		Serial.swap();              		// swap pins
+		
+		if( oenpin > 0 )
+			digitalWrite( oenpin, (oenpin & NEGATIVE_LOGIC) ? LOW : HIGH);    // enabe translator
+
+		flushRcv();					 		// empty Secondary receive buffer
+	}
+	void CPU::swapSerialPri()
+	{        
+		if( !pinswap )						// already in PRI
+			return;
+		Serial.flush();             		// empty Secondaary transmit buffer
+
+		if( oenpin > 0 )
+			digitalWrite( oenpin, (oenpin & NEGATIVE_LOGIC) ? HIGH : LOW);    // enabe translator
+		
+		Serial.swap();              		// swap pins
+		if( pribaudrate != secbaudrate )
+		{
+			Serial.end();                   // Stop
+			Serial.begin( pribaudrate );   	// change baudrate of Primary
+		}
+		flushRcv();							// empty Primary receive buffer
+		pinswap = false;
+	}
+	bool CPU::serialSwapped()
+	{
+		return pinswap;
 	}
 
 char *sf( char *sp, size_t sL, const char *format, ... )
