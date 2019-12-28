@@ -21,7 +21,7 @@ There are three different **BUF** definitions:
 	- **B80**
 
 The first allocates in the HEAP the specified size. The second copies the string to buffer and is the 2nd argument is given, allocates such buffer size. 
-  
+
 The third is a TEMPLATE of specified size allocating memory in the stack. If the argument `string` is given, the buffer is initialized with it; otherwise the buffer is initialized to 'empty'. The convenient defines `B32, B64` and `B80` are predefined sizes of this template.
 
 **NOTE:** When an initial string is provided (in the 2nd and 3rd case), if the first character is '@', then diagnostic messages are printed by the constructor and destructor.
@@ -30,7 +30,21 @@ All class methods ensure that the specified size is not exceeded.
 
 ### Summary of functions
 
-For the following summary, assume that `s` is allocated as `BUF s(80)`, or `B80 s`
+For the following summary, assume that `s` is allocated as `BUF s(80)`, or `B80(s)`
+
+```
+BUF s(80)
+...
+s.set( format, ... );	// fills buffer starting from the beginning
+s.add( format, ... );	// one more additions to above
+s.add( format, ... );
+char *p = s.c_str();	// get the beginning of this buffer. Also returned by s.set()
+
+s.rebase();				// start a new string base
+s.set( format, ... );
+....
+char *q = s.c_str();	// rebased pointer to this string. Also reurned by new s.set()
+```
 
 **s.set( format, ...)**
 > This is identical to `sprintf()` but the content of `s` cannot exceed the maximum buffer size.
