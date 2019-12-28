@@ -26,6 +26,11 @@ public:
         ms = 1000*sec;
 		TICBASE();
     }
+	void setSecCount( int newsec )
+    {
+        ms = 1000*newsec;
+		TICBASE();
+    }
 };
 
 class TICms : public TICBASE
