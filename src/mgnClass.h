@@ -48,6 +48,7 @@ public:
     
     // ------------------- CONTROLS -------------------------------------
     void controlSetText( const char *cname, const char *value ); // text box
+	void controlVarArgs( const char *cname, const char *format, ... );
     void controlSetValue( const char *cname, float value );
     void controlSetValue( const char *cname, int value ); // progress bar
     void controlSetCheck( const char *cname, bool onoff );

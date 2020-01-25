@@ -97,6 +97,16 @@
     {
 		BSAVE("{UI%s|SET|%s.Text=%s}\r\n", channel, cname, value); 
     }
+	void MGN::controlVarArgs( const char *cname, const char *format, ... )
+    {
+		char sp[80];
+		va_list args;
+		va_start (args, format );
+		vsnprintf( sp, 79, format, args );
+		sp[79] = 0;							// EOS
+		va_end( args );
+		BSAVE("{UI%s|SET|%s.Text=%s}\r\n", channel, cname, sp); 
+    }
     void MGN::controlSetValue( const char *cname, float value )
     {
         BSAVE("{UI%s|SET|%s.Value=%.3f}\r\n", channel, cname, value); // numeric up/down
