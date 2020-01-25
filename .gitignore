@@ -13,3 +13,5 @@ src/archives (not tracked)/
 examples/archives (not tracked)/
 *.cpp--
 *.h--
+src/doc/
+src/bufClass.assets/

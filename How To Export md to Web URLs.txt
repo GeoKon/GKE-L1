@@ -1,0 +1,5 @@
+1. Use the /src to create a .md document -- say bufClass.md
+2. Use the /src/doc to create a .pptx with images -- say bufClassPics.pptx
+3. Snap .pptx pictures and save them as .jpg into /src/doc -- say bufClassPic1.jpg
+4. After .md is completed, export the pdf version to /src/doc
+5. Get a Dropbox link of this file to be used in web sites -- right click to /src/doc/bufClass.pdf and copy link
